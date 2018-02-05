@@ -1,0 +1,47 @@
+<script type="text/javascript">
+    RED.nodes.registerType('server', {
+        category: 'config',
+        defaults: {
+            alias: { value: '', required: true },
+            host: { value: '', required: true, validate: RED.validators.regex(/^((http[s]):\/\/)?([^:\/\s]+)(\:(\d+))?$/) },
+        },
+        credentials: {
+            apiKey: { type: 'password', required: true }
+        },
+        label: function() {
+            return this.alias || this.host;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="server">
+    <div class="form-row">
+        <label for="node-config-input-alias"><i class="icon-bookmark"></i> Server alias</label>
+        <input type="text" id="node-config-input-alias">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-host"><i class="icon-bookmark"></i> Host</label>
+        <input type="text" id="node-config-input-host" placeholder="http://">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-apiKey"><i class="fa fa-key"></i> API Key</label>
+        <input type="password" id="node-config-input-apiKey" placeholder="API Key">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="server">
+    <p>The configuration node to place a Sentilo / Thingtia API server settings</p>
+    <p>This settings require the user to fill three fields:</p>
+    <ul>
+        <li><code>Server alias</code> - a name used to to identify Sentilo / Thingtia API server</li>
+        <li>
+            <p><code>Host</code> - the host's url created with the pattern <b><i>[http[s]://]server[:port]</i></b> formed as follows:</p>
+            <ul>
+                <li><code>http[s]://</code> - the protocol, is optional, the node will take <i>http</i> by default</li>
+                <li><code>server</code> - the domain name or IP of the server containing the API for Sentilo / Thingtia</li>
+                <li><code>:port</code> - the port where the API is listening, is optional, this value will be <i>:80</i> by default</li>
+            </ul>
+        </i>
+        <li><code>API key</code> - the API key for Sentilo/Thingtia API from your <i>Provider</i> detail</li>
+    </ul>
+</script>

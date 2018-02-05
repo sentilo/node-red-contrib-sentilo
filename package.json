@@ -1,0 +1,42 @@
+{
+	"name": "node-red-contrib-sentilo",
+	"version": "0.1.0",
+	"description": "A Sentilo/Thingtia platform server nodes collection for node-red",
+	"homepage": "http://www.sentilo.io",
+	"license": "EUPL1.1, LGPLv3",
+	"dependencies": {
+		"body-parser": "^1.17.2",
+		"cookie-parser": "^1.4.3",
+		"cors": "^2.8.1",
+		"ip": "^1.1.5",
+		"is-utf8": "^0.2.1",
+		"on-headers": "^1.0.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sentilo/node-red-contrib-sentilo.git"
+	},
+	"contributors": [
+		{
+			"name": "Ruben Rodríguez"
+		},
+		{
+			"name": "Jordi Marqués"
+		}
+	],
+	"keywords": [
+		"node-red",
+		"sentilo",
+		"thingtia",
+		"iot"
+	],
+	"node-red": {
+		"version": ">=0.15.2",
+		"nodes": {
+			"retrieve": "retrieve/retrieve.js",
+			"publish": "publish/publish.js",
+			"subscribe": "subscribe/subscribe.js",
+			"server": "server/server.js"
+		}
+	}
+}

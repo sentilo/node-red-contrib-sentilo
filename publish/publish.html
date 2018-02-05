@@ -1,0 +1,363 @@
+<script type="text/javascript">
+
+    var urlRawChangedManually = false;
+
+    RED.nodes.registerType('publish',{
+        category: 'sentilo',
+        color: '#f0f0f0',
+        defaults: {
+            name:       { value: "" },
+            server:     { type: "server", required: true },
+            providerId: { value: "", required: true },
+            dataType:   { value: "data", required: true },
+            identifier: { value: "" },
+            obsValue:   { value: "" },
+            urlRaw:     { value: "" }
+        },
+        inputs:1,
+        icon: "sentilo.png",
+        align: "right",
+        label: function() {
+            return this.name || "publish";
+        },
+        oneditprepare: function() {
+            
+            publishInitNode();            
+
+            $('#node-input-lookup-urlRaw').click(function() {
+        		publishToggleOptionalParamsPanel();
+            });
+            
+            $('#node-input-dataType').change(function() {
+                // Prevent URL Raw field content changes
+                // if the combo changes afther an URL Raw field manually update
+                if (!urlRawChangedManually) {
+                    var dataType = $(this).val();
+                    if (!dataType) {
+                        dataType = 'data';
+                    }
+                    // Clean params values
+                    if (dataType !== 'data') {
+                        publishCleanOptionalParamsValues();
+                    }
+
+                    console.log(dataType);
+
+                    //cleanRequiredParamsValues();
+                    // Every time we select a dataType, must:
+                    // Update the URL Raw path
+                    publishUpdateUrlRawPathQueryString();
+                    // Update the optional params panel
+                    publishInitOptionalParamsPanel(dataType);
+                } 
+            });
+
+            // A path modifier field has been modified
+            $('.node-input-path-modifier').keyup(function() {
+                publishUpdateUrlRawPathQueryString();
+            });
+
+            // Some optional text param has been modified
+			$('.optional-param').keyup(function() {
+                publishUpdateUrlRawPathQueryString();
+            });
+
+            // Field URL Raw has been modified
+            $('#node-input-urlRaw').keyup(function() {
+                var urlRaw = $(this).val();
+
+                // Update the optional params panel
+                var dataType = $('#node-input-dataType').val();
+                publishInitOptionalParamsPanel(dataType);
+
+                urlRawChangedManually = true;
+                publishUpdateRequiredParamsValues(urlRaw);
+                publishUpdateOptionalParamsValues(urlRaw);
+                urlRawChangedManually = false;
+            });
+        }
+    });
+
+    function publishInitNode() {
+     
+    }
+
+    function publishToggleOptionalParamsPanel() {
+        $('#extra-rulRaw-shape').slideToggle();
+    }
+
+    function publishGetSentiloRequestPath(dataType) {
+        switch(dataType) {
+            case 'alarm':       return '/alarm';
+            case 'alert':       return '/catalog/alert';
+            case 'catalog':     return '/catalog';
+            case 'data':        return '/data';
+            case 'order':       return '/order';
+            case 'subscribe':   return '/subscribe';
+        }
+    }
+
+    function publishCleanOptionalParamsValues() {
+        // Clean all optinal params (sure?)
+        $('.optional-param').val('');
+    }
+
+    function publishInitOptionalParamsPanel(dataType) {
+        switch(dataType) {
+            case 'data': 
+                $('#value-shape').show();
+                break;
+            default: 
+                $('#value-shape').hide();
+                break;
+        }
+    }
+
+    function publishUpdateUrlRawPathQueryString() {
+        var dataType = $('#node-input-dataType').val();
+        var requestPath = publishGetSentiloRequestPath(dataType);
+        var providerId = $('#node-input-providerId').val();
+        var identifier = $('#node-input-identifier').val();
+        var value = $('#node-input-obsValue').val();
+
+        var queryString = '';
+
+        switch(dataType) {
+            case 'alarm':
+                // Required alertId (identifier)
+                requestPath = publishAddPathToRequestPath(requestPath, identifier);
+                break;
+            case 'data':
+                // Required: providerId
+                requestPath = publishAddPathToRequestPath(requestPath, providerId);
+                // Optionals: sensorId (identifier), observationValue (value) over sensorId
+                requestPath = publishAddPathToRequestPath(requestPath, identifier);
+                if (identifier) {
+                    requestPath = publishAddPathToRequestPath(requestPath, value);
+                }
+                break;
+            case 'order':
+                // Required: providerId
+                requestPath = publishAddPathToRequestPath(requestPath, providerId);
+                // Optionals: sensorId (identifier)
+                requestPath = publishAddPathToRequestPath(requestPath, identifier);
+                break;
+        }
+
+        //  Update the url raw
+        $('#node-input-urlRaw').val(requestPath + queryString);
+    }
+
+    function publishUpdateRequiredParamsValues(urlRaw) {
+        // Get path params from request (list)
+        var pathParams = publishGetPathParamsFromUrlRaw(urlRaw);
+
+        // Extract data type from the url raw
+        var dataType = publishGetDataTypeFromUrlRaw(urlRaw);
+
+        switch(dataType) {
+            case 'alarm':
+                // Path: /alarm/identifier (tokens = 3)
+                $('#node-input-identifier').val(pathParams[2]);
+                break;
+
+            case 'data':
+                // Path: /data/providerId/identifier/value (tokens = 5)
+                if (pathParams[4]) {
+                    $('#node-input-obsValue').val(pathParams[4]);
+                }
+            case 'order':
+                // Path: /data/providerId (tokens = 3)
+                // Path: /data/providerId/identifier (tokens = 4)
+                // Path: /order/providerId (tokens = 3)
+                // Path: /order/providerId/identifier (tokens = 4)
+                $('#node-input-providerId').val(pathParams[2]);
+                $('#node-input-identifier').val(pathParams[3]);
+                break;
+        }
+
+    }
+
+    function publishGetPathParamsFromUrlRaw(urlRaw) {
+        var tokens = urlRaw.split('?');
+        if (tokens && tokens.length > 0) {
+            return tokens[0].split('/'); 
+        }
+        return [];
+    }
+
+    function publishGetDataTypeFromUrlRaw(urlRaw) {
+        if (urlRaw.startsWith('/alarm')) {
+            return 'alarm';
+        } else if (urlRaw.startsWith('/data')) {
+            return 'data';
+        } else if (urlRaw.startsWith('/order')) {
+            return 'order';
+        }
+        return '';
+    }
+
+    function publishUpdateOptionalParamsValues(urlRaw) {
+        // Get optional param values from url raw
+        var optionalParams = publishGetQueryStringParamsFromUrlRaw(urlRaw);
+
+        // Extract data type from the url raw
+        var dataType = publishGetDataTypeFromUrlRaw(urlRaw);
+
+        // Update optional optionalParams fields values
+        switch(dataType.toLowerCase()) {
+            case 'data':
+                // Optionals: value
+                if (optionalParams.hasOwnProperty('value')) {
+                    $('#node-input-obsValue').val(optionalParams.value);
+                }
+                break;
+        }
+
+        // Update the DataType combo only if we have a correct request path
+        publishUpdateDataTypeSelectedValue(dataType);
+    }
+
+    function publishGetCurrentQueryString(urlRaw) {
+        var tokens = urlRaw.split('?');
+        return (tokens.length === 2) ? tokens[1] : '';
+    }
+
+    function publishGetQueryStringParamsFromUrlRaw(urlRaw) {
+        var queryString = publishGetCurrentQueryString(urlRaw);
+
+        var match,
+            pl     = /\+/g,  // Regex for replacing addition symbol with a space
+            search = /([^&=]+)=?([^&]*)/g,
+            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            query  = queryString;
+
+        urlParams = {};
+        while (match = search.exec(query)) {
+            urlParams[decode(match[1])] = decode(match[2]);
+        }
+       
+        return urlParams;
+    }
+
+    function publishAddPathToRequestPath(requestPath, path) {
+        if (path) {
+            return requestPath + '/' + path;
+        } 
+        return requestPath;
+    }
+
+    function publishUpdateDataTypeSelectedValue(dataType) {
+        $('#node-input-dataType').val(dataType).change();
+    }
+</script>
+
+<script type="text/x-red" data-template-name="publish">
+    
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-globe"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+    <div class="form-row">
+        <label for="node-input-providerId"><i class="icon-tag"></i> Provider</label>
+        <input type="text" id="node-input-providerId" placeholder="Provider" class="node-input-path-modifier">
+    </div>
+    <div id="type-shape" class="form-row">
+        <label for="node-input-dataType"><i class="icon-tag"></i> Type</label>
+        <select id="node-input-dataType">
+            <option value="alarm">ALARM</option>
+            <option value="data" selected="true">DATA</option>
+            <option value="order">ORDER</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-id"><i class="icon-tag"></i> Id</label>
+        <input type="text" id="node-input-identifier" placeholder="Id" class="node-input-path-modifier">
+    </div>
+    <div class="form-row">
+        <label for="node-input-urlRaw"><i class="icon-tag"></i> URL Raw</label>	
+        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">		
+            <div style="position: absolute; left: 0px; right: 40px;">
+                <input type="text" id="node-input-urlRaw" style="width:100%" placeholder="Fill to override URL resource and parameters">
+            </div>
+            <a id="node-input-lookup-urlRaw" class="editor-button" style="position: absolute; right: 0px; top: 0px;">
+                <i class="fa fa-pencil"></i>
+            </a>
+        </div>
+    </div>
+
+    <div id="extra-rulRaw-shape" style="display:none; margin: 25px 0px; border: 1px solid rgb(221, 221, 221); padding: 8px;">
+        <p style="padding: 0px"><strong>Edit the url raw params</strong></p>
+        <hr />
+        <div id="value-shape" class="form-row" style="display:none;" >
+            <label for="node-input-obsValue"><i class="icon-tag"></i> Value</label>
+            <input type="text" id="node-input-obsValue" placeholder="value" class="optional-param">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="name">
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="publish">
+
+    <h2><strong>The 'publish' node</stronG></h2>
+        <p>A node to publish data from <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
+        <p>A right API configuration and required fields are mandatory for the node to work.</p>
+        <p>Possible datat types are: <code>ALARM</code>, <code>DATA</code> or <code>ORDER</code></p>
+    
+    <h2><strong>How does it works</strong></h2>
+        <p>Select a valid Sentilo or Thingtia platform server configuration to work with (<strong>Server</strong> field).</p>
+        <p>You must provide required config into required dependent fields, such like <strong>Provider Id</strong> or <strong>Id</strong>, depending on the type of data you want to publish.</p>
+        <p>You can fill your own <strong>url-raw request</strong> parameters into the <strong>URL Raw</strong> field, and the node will recognize the related params.</p>
+        <p>Alternatively, you can edit them by clicking in the editor button, that will expand the optional params form.</p>
+    
+        <h3><strong>Request config params</strong></h3>
+            <ul>
+                <li><strong>Server</strong>: se Sentilo / Thingtia server credentials</li>
+                <li><strong>Provider</strong>: the <code>providerId</code>, required for <code>DATA</code> and <code>ORDER</code> subscription data types</li>
+                <li><strong>Data type</strong>: the data type to wich to publish: <code>ALARM</code>, <code>DATA</code> or <code>ORDER</code></li>
+                <li><strong>Id</strong>: the element identifier, it could be optional when you'll publish for <code>DATA</code> and <code>ORDER</code> data types, and required for <strong>alertId</strong> when <code>ALARM</code> data type is selected </li>
+                <li><strong>URL Raw</strong>: the call url that will be sended as a request to the Sentilo / Thingtia platform server  (it could be edited manually or filling the optional config parameters)</li>
+                <li><strong>Name</strong>: the node descriptive name</li>
+            </ul>
+
+        <h3><strong>Data injection</strong></h3>
+            <p>You can inject data as JSON format using an <strong>Inject node</strong> for send to the Sentilo / Thingtia platform server, as described in the offial documentation (see the <stron>observation</strong> message format documentation)</p>
+        
+        <h3><strong>Optional params</strong></h3>
+            <p>Optional params are dependent of the desired retrieved data type, and it could be needed some payload or json data input (injected with an <strong>input inject node</strong>):</p>
+            <ul>
+                <li><strong>ALARM</strong> : publish an alarm related with an alert
+                    <ul>
+                        <li>Required params are: <code>alertId</code>, the input json data message (please see <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs.Services.Alarm/PublishAlarm" target="_blank">Sentilo API Docs</a> for more data input message format info)</li>
+                        <li>Optional params are: none</li>
+                    </ul>
+                </li>
+                <li><strong>DATA</strong> : publish one or more observations related to one or more sensors from a provider
+                    <ul>
+                        <li>Required params are: <code>providerId</code>, and/or <code>sensorId</code>, the <code>input json data message</code> (please see <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Data/PublishSensorData" target="_blank">Sentilo API Docs to publish for one sensor</a>, or <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Data/PublishProviderSensorData" target="_blank">Sentilo API Docs to publish for several sensors of a provider</a> for more info)</li>
+                        <li>Optional params are: <code>value</code>, if filled, it cat publish the observation inline</li>
+                    </ul>
+                </li>
+                <li><strong>ORDER</strong> : publish an order related to one or more sensors from a provider
+                    <ul>
+                        <li>Required params are: <code>providerId</code>, and/or <code>sensorId</code>, the <code>input json data message</code> (please see <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Order/PublishOrder" target="_blank">Sentilo API Docs to publish an order</a> for more info)</li>
+                        <li>Optional params are: none</li>
+                    </ul>
+                </li>
+            </ul>
+            <p>Please, note that all above parameters and configurations must meet the specification defined into the <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">Sentilo/Thingtia API documentation</a></p>
+
+        <h3><strong>Error handling</strong></h3>
+            <p>The node will throw an error if some of the nexts problems are encountered:</p>
+            <ul>
+                <li>Sentilo / Thingtia API returns an error</li>
+                <li>A required field of settings is not set</li>
+            </ul>
+            <p>The thrown error may be caught by a <code>catch</code> node</p>
+
+</script>

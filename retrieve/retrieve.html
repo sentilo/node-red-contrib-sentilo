@@ -1,0 +1,647 @@
+<script type="text/javascript">
+
+    var urlRawChangedManually = false;    
+	var lastDataTypeValue = $('#node-input-dataType').val();
+	
+    RED.nodes.registerType('retrieve',{
+        category: 'sentilo',
+        color: '#f0f0f0',
+        defaults: {
+            server:             { type: "server" },
+            providerId:         { value: "", validate: function(value) {
+                // Required when dataType == ALERT, DATA, ORDER
+                var dataType = ($('#node-input-dataType').val()) ? $('#node-input-dataType').val() : 'data';
+            	var isMandatory = 
+            		dataType === 'alert' ||
+            		dataType === 'data' && $('#node-input-identifier').val() === '' ||
+            		dataType === 'order' && $('#node-input-identifier').val() === ''; 
+            	var isValid = !isMandatory || isMandatory && value !== '';
+            	return isValid;
+            }},
+            dataType:           { value: "data" },
+            identifier:         { value: "" , validate: function(value) {
+            	// Required when dataType == DATA, ORDER
+                var dataType = ($('#node-input-dataType').val()) ? $('#node-input-dataType').val() : 'data';
+            	var isMandatory = 
+                    dataType === 'alarm' ||
+                    dataType === 'data' && $('#node-input-providerId').val() === '' ||
+            		dataType === 'order' && $('#node-input-providerId').val() === ''; 
+            	var isValid = !isMandatory || isMandatory && value !== '';
+            	return isValid;
+            }},
+            urlRaw:             { value: "" },
+            limit:              { value: "",        validate:RED.validators.regex(/^$|^[0-9]*$/) },  // positive numbers
+            from:               { value: "",        validate:RED.validators.regex(/^$|(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/[0-9]{4}T(2[0-3]|[01][0-9]):[0-5][0-9]/) },  // Timestamp dd/MM/yyyy'T'hh:mm:ss },  // Timestamp dd/MM/yyyy'T'hh:mm:ss
+            to:                 { value: "",        validate:RED.validators.regex(/^$|(0[1-9]|[1-2][0-9]|3[0-1])\/(0[1-9]|1[0-2])\/[0-9]{4}T(2[0-3]|[01][0-9]):[0-5][0-9]/) },  // Timestamp dd/MM/yyyy'T'hh:mm:ss
+            trigger:            { value: "" },
+            alertType:          { value: "" },
+            component:          { value: "" },
+            componentType:      { value: "" },
+            sensorType:         { value: "" },
+            subscriptionType:   { value: "" },
+            name:               { value:"" }
+        },
+        inputs:1,
+        outputs:1,
+        icon: "sentilo.png",
+        label: function() {
+            return this.name || "retrieve";
+        },
+        oneditprepare: function() {
+            
+            retrieveInitNode();            
+
+            $('#node-input-lookup-urlRaw').click(function() {
+        		retrieveToggleOptionalParamsPanel();
+            });
+            
+            $('#node-input-dataType').change(function() {
+            	
+            	// Prevent URL Raw field content changes
+                // if the combo changes afther an URL Raw field manually update
+                if (!urlRawChangedManually) {
+                    var dataType = $(this).val();
+                    if (!dataType) {
+                        dataType = 'data';
+                    }
+                
+                    
+                    if (lastDataTypeValue !== dataType) {
+                    	// Clean params values
+                        retrieveCleanOptionalParamsValues();
+                        //retrieveCleanRequiredParamsValues();	
+                    }
+                    
+                    // Every time we select a dataType, must:
+                    // Update the optional params panel
+                    retrieveInitOptionalParamsPanelRetrieve(dataType);
+                    // Update the URL Raw path
+                    retrieveUpdateUrlRawPathQueryString();
+                    
+                    lastDataTypeValue = dataType;
+                } 
+            });
+
+            // A path modifier field has been modified
+            $('.node-input-path-modifier').keyup(function() {
+                retrieveUpdateUrlRawPathQueryString();
+            });
+
+            // Some optional text param has been modified
+			$('.optional-param').keyup(function() {
+                retrieveUpdateUrlRawPathQueryString();
+            });
+
+            // Some optional select param has been modified
+            $('.optional-param-select').change(function() {
+                retrieveUpdateUrlRawPathQueryString();
+            });
+            
+            // Field URL Raw has been modified
+            $('#node-input-urlRaw').keyup(function() {
+                var urlRaw = $(this).val();
+                urlRawChangedManually = true;
+                retrieveUpdateRequiredParamsValues(urlRaw);
+                retrieveUpdateOptionalParamsValues(urlRaw);
+                urlRawChangedManually = false;
+            });
+        }
+    });
+
+    function retrieveInitNode() {
+        var dataType = $('#node-input-dataType').val();
+        if (!dataType) {
+            dataType = 'data';
+        }
+        retrieveUpdateUrlRawPathQueryString();
+        retrieveInitOptionalParamsPanelRetrieve(dataType);
+    }
+
+    function retrieveInitOptionalParamsPanelRetrieve(dataType) {
+        switch(dataType) {
+            case 'alert':
+                $('#alertType-shape').show();
+                $('#trigger-shape').show();
+                $('#alarm-shape').hide();
+                $('#limit-shape').hide();
+                $('#from-shape').hide();
+                $('#to-shape').hide();
+                $('#subscriptionType-shape').hide();
+                $('#sensorType-shape').hide();
+                $('#componentType-shape').hide();
+                $('#component-shape').hide();
+                break;
+                
+            case 'catalog':
+                $('#sensorType-shape').show();
+                $('#componentType-shape').show();
+                $('#component-shape').show();
+                $('#alertType-shape').hide();
+                $('#trigger-shape').hide();
+                $('#alarm-shape').hide();
+                $('#limit-shape').hide();
+                $('#from-shape').hide();
+                $('#to-shape').hide();
+                $('#subscriptionType-shape').hide();
+                break;
+
+            case 'alarm':
+            case 'data':
+            case 'order':
+                $('#limit-shape').show();
+                $('#from-shape').show();
+                $('#to-shape').show();
+                $('#sensorType-shape').hide();
+                $('#componentType-shape').hide();
+                $('#component-shape').hide();
+                $('#alertType-shape').hide();
+                $('#trigger-shape').hide();
+                $('#alarm-shape').hide();
+                $('#subscriptionType-shape').hide();
+                break;
+                
+            case 'subscribe':
+                $('#subscriptionType-shape').show();
+                $('#limit-shape').hide();
+                $('#from-shape').hide();
+                $('#to-shape').hide();
+                $('#sensorType-shape').hide();
+                $('#componentType-shape').hide();
+                $('#component-shape').hide();
+                $('#alertType-shape').hide();
+                $('#trigger-shape').hide();
+                $('#alarm-shape').hide();
+                break;
+        }
+    }
+
+    function retrieveToggleOptionalParamsPanel() {
+        $('#extra-rulRaw-shape').slideToggle();
+    }
+
+    function retrieveGetSentiloRequestPath(dataType) {
+        switch(dataType) {
+            case 'alarm':       return '/alarm';
+            case 'alert':       return '/catalog/alert';
+            case 'catalog':     return '/catalog';
+            case 'data':        return '/data';
+            case 'order':       return '/order';
+            case 'subscribe':   return '/subscribe';
+        }
+    }
+
+    function retrieveUpdateUrlRawPathQueryString() {
+        var dataType = $('#node-input-dataType').val();
+        var requestPath = retrieveGetSentiloRequestPath(dataType);
+        var providerId = $('#node-input-providerId').val();
+        var identifier = $('#node-input-identifier').val();
+        var limit = $('#node-input-limit').val();
+        var from = $('#node-input-from').val();
+        var to = $('#node-input-to').val();
+        var alertType = $('#node-input-alertType').val();
+        var trigger = $('#node-input-trigger').val();
+        var sensorType = $('#node-input-sensorType').val();
+        var component = $('#node-input-component').val();
+        var componentType = $('#node-input-componentType').val();
+        var subscriptionType = $('#node-input-subscriptionType').val();
+
+        var queryString = '';
+
+        switch(dataType) {
+            
+            case 'alert': 
+                // Required providerId ; Optionals: alertType, trigger
+                requestPath = retrieveAddPathToRequestPath(requestPath, providerId);
+                queryString = retrieveAddParamToQueryString(queryString, 'type', alertType);
+                queryString = retrieveAddParamToQueryString(queryString, 'trigger', trigger);
+                break;
+            
+            case 'catalog':
+                // Optionals: providerId, sensorType, component, componentType
+                requestPath = retrieveAddPathToRequestPath(requestPath, providerId);
+                queryString = retrieveAddParamToQueryString(queryString, 'type', sensorType);
+                queryString = retrieveAddParamToQueryString(queryString, 'component', component);
+                queryString = retrieveAddParamToQueryString(queryString, 'componentType', componentType);
+                break;
+            
+            case 'alarm':
+                // Required: alarmId(identifier) ; Optionals: limit, from, to
+                requestPath = retrieveAddPathToRequestPath(requestPath, identifier);
+                // Optionals: from, to, limit
+                queryString = retrieveAddParamToQueryString(queryString, 'limit', limit);
+                queryString = retrieveAddParamToQueryString(queryString, 'from', from);
+                queryString = retrieveAddParamToQueryString(queryString, 'to', to);
+                break;
+            case 'data':
+                // Required either sensorId (identifier) or providerId ; Optionals: from, to, limit
+            case 'order':
+                // Required either sensorId (identifier) or providerId
+                requestPath = retrieveAddPathToRequestPath(requestPath, providerId);
+                requestPath = retrieveAddPathToRequestPath(requestPath, identifier);
+                
+                // Optionals: from, to, limit
+                queryString = retrieveAddParamToQueryString(queryString, 'limit', limit);
+                queryString = retrieveAddParamToQueryString(queryString, 'from', from);
+                queryString = retrieveAddParamToQueryString(queryString, 'to', to);
+                break;
+            
+            case 'subscribe': 
+                // Related to our token ; Required as request path: subscriptionType
+                requestPath = retrieveAddPathToRequestPath(requestPath, subscriptionType);
+                break;
+        }
+
+        //  Update the url raw
+        $('#node-input-urlRaw').val(requestPath + queryString);
+    }
+
+    function retrieveAddParamToQueryString(queryString, paramName, paramValue) {
+        if (!queryString) {
+            if (paramValue) {
+                queryString = '?' + paramName + '=' + paramValue;
+            }
+        } else {
+            if (paramValue) {
+                queryString += '&' + paramName + '=' + paramValue;
+            }
+        }
+        return queryString;
+    }
+
+    function retrieveAddPathToRequestPath(requestPath, path) {
+        if (path) {
+            return requestPath + '/' + path;
+        } 
+        return requestPath;
+    }
+
+    function retrieveUpdateRequiredParamsValues(urlRaw) {
+        // Get path params from request (list)
+        var pathParams = retrieveGetPathParamsFromUrlRaw(urlRaw);
+
+        // Extract data type from the url raw
+        var dataType = retrieveGetDataTypeFromUrlRaw(urlRaw);
+
+        switch(dataType) {
+            case 'alarm':
+                // Path: /alarm/identifier (tokens = 3)
+                $('#node-input-identifier').val(pathParams[2]);
+                break;
+
+            case 'alert':
+                // Path: /catalog/alert/providerId (tokens = 3)
+                $('#node-input-providerId').val(pathParams[3]);
+                break;
+
+            case 'catalog':
+                // Path: /catalog/providerId (tokens = 3)
+                $('#node-input-providerId').val(pathParams[2]);
+                break;
+
+            case 'data':
+            case 'order':
+                // Path: /data/providerId (tokens = 3)
+                // Path: /data/providerId/identifier (tokens = 4)
+                // Path: /order/providerId/identifier (tokens = 4)
+                $('#node-input-providerId').val(pathParams[2]);
+                $('#node-input-identifier').val(pathParams[3]);
+                break;
+
+            case 'subscribe':
+                break;
+        }
+
+    }
+
+    function retrieveUpdateOptionalParamsValues(urlRaw) {
+        // Get optional param values from url raw
+        var optionalParams = retrieveGetQueryStringParamsFromUrlRaw(urlRaw);
+
+        // Extract data type from the url raw
+        var dataType = retrieveGetDataTypeFromUrlRaw(urlRaw);
+
+        // Update optional optionalParams fields values
+        switch(dataType.toLowerCase()) {
+            
+            case 'alert': 
+                // Required providerId ; Optionals: alertType, trigger
+                if (optionalParams.hasOwnProperty('type')) {
+                    $('#node-input-alertType').val(optionalParams.type);
+                }
+                if (optionalParams.hasOwnProperty('trigger')) {
+                    $('#node-input-trigger').val(optionalParams.trigger);
+                }
+                // Update the DataType combo only if we have a correct request path
+                retrieveUpdateDataTypeSelectedValue(dataType);
+                break;
+            
+            case 'catalog':
+                // Optionals: sensorType, component, componentType
+                if (optionalParams.hasOwnProperty('type')) {
+                    $('#node-input-sensorType').val(optionalParams.type);
+                }
+                if (optionalParams.hasOwnProperty('component')) {
+                    $('#node-input-component').val(optionalParams.component);
+                }
+                if (optionalParams.hasOwnProperty('componentType')) {
+                    $('#node-input-componentType').val(optionalParams.componentType);
+                }
+                // Update the DataType combo only if we have a correct request path
+                retrieveUpdateDataTypeSelectedValue(dataType);
+                break;
+
+            case 'alarm':
+            case 'data':
+            case 'order':
+                // Optionals: from, to, limit
+                if (optionalParams.hasOwnProperty('limit')) {
+                    $('#node-input-limit').val(optionalParams.limit);
+                }
+                if (optionalParams.hasOwnProperty('from')) {
+                    $('#node-input-from').val(optionalParams.from);
+                }
+                if (optionalParams.hasOwnProperty('to')) {
+                    $('#node-input-to').val(optionalParams.to);
+                }
+                // Update the DataType combo only if we have a correct request path
+                retrieveUpdateDataTypeSelectedValue(dataType);
+                break;
+
+            case 'subscribe':
+                // Related to our token ; Required as request path: subscriptionType
+                // subscribe Type is path format
+                var subscriptionType = retrieveGetLastPathFromUrlRaw();
+                switch(subscriptionType.toLowerCase()) {
+                    case 'alarm':
+                    case 'data':
+                    case 'order':
+                        $('#node-input-subscriptionType').val(subscriptionType).change();
+                        break;
+                }                
+
+                // Update the DataType combo only if we have a correct request path
+                retrieveUpdateDataTypeSelectedValue(dataType);
+                break;
+        }
+
+        // Update the optional params content
+        retrieveInitOptionalParamsPanelRetrieve(dataType);
+    }
+
+    function retrieveGetCurrentQueryString(urlRaw) {
+        var tokens = urlRaw.split('?');
+        return (tokens.length === 2) ? tokens[1] : '';
+    }
+
+    function retrieveGetPathParamsFromUrlRaw(urlRaw) {
+        var tokens = urlRaw.split('?');
+        if (tokens && tokens.length > 0) {
+            return tokens[0].split('/'); 
+        }
+        return [];
+    }
+
+    function retrieveGetQueryStringParamsFromUrlRaw(urlRaw) {
+        var queryString = retrieveGetCurrentQueryString(urlRaw);
+
+        var match,
+            pl     = /\+/g,  // Regex for replacing addition symbol with a space
+            search = /([^&=]+)=?([^&]*)/g,
+            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            query  = queryString;
+
+        urlParams = {};
+        while (match = search.exec(query)) {
+            urlParams[decode(match[1])] = decode(match[2]);
+        }
+       
+        return urlParams;
+    }
+
+    function retrieveGetDataTypeFromUrlRaw(urlRaw) {
+        if (urlRaw.startsWith('/alarm')) {
+            return 'alarm';
+        } else if (urlRaw.startsWith('/catalog/alert')) {
+            return 'alert';
+        } else if (urlRaw.startsWith('/catalog')) {
+            return 'catalog';
+        } else if (urlRaw.startsWith('/data')) {
+            return 'data';
+        } else if (urlRaw.startsWith('/order')) {
+            return 'order';
+        } else if (urlRaw.startsWith('/subscribe')) {
+            return 'subscribe';
+        }
+        return '';
+    }
+
+    function retrieveUpdateDataTypeSelectedValue(dataType) {
+    	$('#node-input-dataType').val(dataType).change();
+    }
+
+    function retrieveCleanRequiredParamsValues() {
+        // Clean all required params
+        $('#node-input-providerId').val('');
+        $('#node-input-identifier').val('');
+    }
+
+    function retrieveCleanOptionalParamsValues() {
+        // Clean all optinal params (sure?)
+        $('.optional-param').val('');
+        $('.optional-param-select').val('').change();
+    }
+
+</script>
+
+<script type="text/x-red" data-template-name="retrieve">
+    
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-globe"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-providerId"><i class="icon-tag"></i> Provider</label>
+        <input type="text" id="node-input-providerId" placeholder="providerId" class="node-input-path-modifier">
+    </div>
+    
+    <div id="type-shape" class="form-row">
+        <label for="node-input-dataType"><i class="icon-tag"></i> Type</label>
+        <select id="node-input-dataType">
+            <option value="alarm">ALARM</option>
+            <option value="alert">ALERT</option>			
+            <option value="catalog">CATALOG</option>			
+            <option value="data" selected="selected">DATA</option>
+            <option value="order">ORDER</option>
+            <option value="subscribe">SUBSCRIBE</option>
+        </select>
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-identifier"><i class="icon-tag"></i> Id</label>
+        <input type="text" id="node-input-identifier" placeholder="identifier" class="node-input-path-modifier">
+    </div>
+    
+    <div class="form-row">
+		<label for="node-input-urlRaw"><i class="icon-tag"></i> URL Raw</label>	
+		<div style="display: inline-block; position: relative; width: 70%; height: 20px;">		
+			<div style="position: absolute; left: 0px; right: 40px;">
+				<input type="text" id="node-input-urlRaw" style="width:100%" placeholder="Fill to override URL resource and parameters">
+			</div>
+			<a id="node-input-lookup-urlRaw" class="editor-button" style="position: absolute; right: 0px; top: 0px;">
+				<i class="fa fa-pencil"></i>
+			</a>
+		</div>
+    </div>
+    
+    <div id="extra-rulRaw-shape" style="display:none; margin: 25px 0px; border: 1px solid rgb(221, 221, 221); padding: 8px;">
+
+		<p style="padding: 0px"><strong>Edit the url raw params</strong></p>
+        <hr />
+        
+        <div id="limit-shape" class="form-row" style="display:none;">
+            <label for="node-input-limit"><i class="icon-tag"></i> Limit</label>
+            <input type="text" id="node-input-limit" placeholder="limit" class="optional-param">
+        </div>
+
+        <div id="from-shape" class="form-row" style="display:none;">
+            <label for="node-input-from"><i class="icon-tag"></i> From</label>
+            <input type="text" id="node-input-from" placeholder="from" class="optional-param">
+        </div>
+
+        <div id="to-shape" class="form-row" style="display:none;">
+            <label for="node-input-to"><i class="icon-tag"></i> To</label>
+            <input type="text" id="node-input-to" placeholder="to" class="optional-param">
+        </div>
+
+        <div id="sensorType-shape" class="form-row" style="display:none;">
+            <label for="node-input-sensorType"><i class="icon-tag"></i> Sensor type</label>
+            <input type="text" id="node-input-sensorType" placeholder="sensorType" class="optional-param">
+        </div>
+
+        <div id="componentType-shape" class="form-row" style="display:none;">
+            <label for="node-input-componentType"><i class="icon-tag"></i> Component type</label>
+            <input type="text" id="node-input-componentType" placeholder="componentType" class="optional-param">
+        </div>
+
+        <div id="component-shape" class="form-row" style="display:none;">
+            <label for="node-input-component"><i class="icon-tag"></i> Component name</label>
+            <input type="text" id="node-input-component" placeholder="component" class="optional-param">
+        </div>
+
+        <div id="alertType-shape" class="form-row" style="display:none;">
+            <label for="node-input-alertType"><i class="icon-tag"></i> Alert type</label>
+            <select id="node-input-alertType" class="optional-param optional-param-select">
+                <option value=""></option>
+                <option value="external">EXTERNAL</option>
+                <option value="internal">INTERNAL</option>
+            </select>
+        </div>
+
+        <div id="trigger-shape" class="form-row" style="display:none;">
+            <label for="node-input-trigger"><i class="icon-tag"></i> Trigger</label>
+            <select id="node-input-trigger" class="optional-param optional-param-select">
+                <option value=""></option>
+                <option value="GT">GT: Greater than</option>
+                <option value="GTE">GTE: Greater than or equal</option>
+                <option value="LT">LT: Less than</option>
+                <option value="LTE">LTE: Less than or equal</option>
+                <option value="EQ">EQ: Equal</option>
+                <option value="CHANGE">CHANGE: Any change</option>
+                <option value="CHANGE_DELTA">CHANGE_DELTA: Any variation greater to delta</option>
+                <option value="FROZEN">FROZEN: No data received in X minutes</option>
+            </select>
+        </div>
+
+        <div id="subscriptionType-shape" class="form-row" style="display:none;">
+            <label for="node-input-subscriptionType"><i class="icon-tag"></i> Event type</label>
+            <select id="node-input-subscriptionType" class="optional-param optional-param-select">
+                <option value=""></option>
+                <option value="alarm">ALARM</option>
+                <option value="data" selected="selected">DATA</option>
+                <option value="order">ORDER</option>
+            </select>
+        </div>
+	
+	</div>
+    
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="retrieve">
+
+    <h2><strong>The 'retrieve' node</stronG></h2>
+    <p>A node to retrieve data from <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
+    <p>A right API configuration and required fields are mandatory for the node to work.</p>
+    <p>Please, note that this node doesn't admits any <code>msg.payload</code> input content, but it is mandatory to connect to its input an inject node in order to work with.</p>
+
+    <h2><strong>How does it works</strong></h2>
+        <p>Select a valid Sentilo or Thingtia platform server configuration to work with (<strong>Server</strong> field).</p>
+        <p>You must provide required config into required dependent fields, such like <strong>Provider Id</strong> or <strong>Id</strong>, depending on the type of data you want to retrieve.</p>
+        <p>You can fill your own url-raw request parameters into the <strong>URL Raw</strong> field, and the node will recognize the related params.</p>
+        <p>Alternatively, you can edit them by clicking in the editor button, that will expand the optional params form.</p>
+        
+        <h3><strong>Request config params</strong></h3>
+            <ul>
+                <li><strong>Server</strong>: se Sentilo / Thingtia server credentials</li>
+                <li><strong>Provider</strong>: the <code>providerId</code>, required for <code>ALERT</code>, <code>DATA</code> and <code>ORDER</code> data types</li>
+                <li><strong>Data type</strong>: the data type that you want retrieve: <code>ALARM</code>, <code>ALERT</code>, <code>CATALOG</code>, <code>DATA</code>, <code>ORDER</code> or <code>SUBSCRIBE</code></li>
+                <li><strong>Id</strong>: the element identifier, it could be used to retrieve <code>ALARM</code>, <code>ALERT</code>, <code>DATA</code> and <code>ORDER</code></li>
+                <li><strong>URL Raw</strong>: the call url that will be sended as a request to the Sentilo / Thingtia platform server (it could be edited manually or filling the optional config parameters)</li>
+                <li><strong>Name</strong>: the node descriptive name</li>
+            </ul>
+
+        <h3><strong>Optional params</strong></h3>
+            <p>Optional params are dependent of the desired retrieved data type:</p>
+            <ul>
+                <li><strong>ALARM</strong> : retrieve the latest alarms related with an alert
+                    <ul>
+                        <li>Required params are: <code>providerId</code></li>
+                        <li>Optional params are: <code>limit</code>, <code>from</code> and <code>to</code> params</li>
+                    </ul>
+                </li>
+                <li><strong>ALERT</strong> : retrieve the authorized alerts
+                    <ul>
+                        <li>Required params are: <code>providerId</code></li>
+                        <li>Optional params are: <code>alertType</code> and <code>trigger</code></li>
+                    </ul>
+                </li>
+                <li><strong>CATALOG</strong> : retrieve a list of providers and sensors for which have at least read permission 
+                    <ul>
+                        <li>Required params are: none</li>
+                        <li>Optional params are: <code>sensorType</code>, <code>component</code> and <code>componentType</code></li>
+                    </ul>
+                </li>
+                <li><strong>DATA</strong> : retrieve the latest observations of a sensor, or from a provider's sensors 
+                    <ul>
+                        <li>Required params are: <code>providerId</code> or <code>providerId</code> & <code>id</code></li>
+                        <li>Optional params are: <code>limit</code>, <code>from</code> and <code>to</code> params</li>
+                    </ul>
+                </li>
+                <li><strong>ORDER</strong> : retrieve the last orders associated with a sensor or provider 
+                    <ul>
+                        <li>Required params are: <code>providerId</code> or <code>providerId</code> & <code>id</code></li>
+                        <li>Optional params are: <code>limit</code>, <code>from</code> and <code>to</code> params</li>
+                    </ul>
+                </li>
+                <li><strong>SUBSCRIPTION</strong> :  retrieve the list of all our active subcriptions
+                    <ul>
+                        <li>Required params are: node</li>
+                        <li>Optional params are: <code>eventType</code>, but note that it must be informed on the request path</li>
+                    </ul>
+                </li>
+            </ul>
+            <p>Please, note that all above parameters and configurations must meet the specification defined into the <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">Sentilo/Thingtia API documentation</a></p>
+
+        <h3><strong>Error handling</strong></h3>
+            <p>The node will throw an error if some of the nexts problems are encountered:</p>
+            <ul>
+                <li>Sentilo / Thingtia API returns an error</li>
+                <li>A required field of settings is not set</li>
+            </ul>
+            <p>The thrown error may be caught by a <code>catch</code> node</p>
+
+</script>
