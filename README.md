@@ -1,7 +1,7 @@
 node-red-contrib-sentilo
 ========================
 
-A [Node-RED](http://nodered.org) node collection used to retrieve, publish and subscribe data from/to **Sentilo/Thingtia Platform Server**.
+A [Node-RED] (http://nodered.org) node collection used to retrieve, publish and subscribe data from/to **Sentilo/Thingtia Platform Server**.
 
 ## Install
 Run the following command in the root directory for your Node-RED install
