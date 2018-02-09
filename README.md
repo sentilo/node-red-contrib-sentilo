@@ -1,7 +1,23 @@
 node-red-contrib-sentilo
 ========================
 
-A [Node-RED] (http://nodered.org) node collection used to retrieve, publish and subscribe data from/to **Sentilo/Thingtia Platform Server**.
+<div style="width: 100%; margin: 50px 0px 250px 0px; border: 0px;">
+	<div style="width: 50%; float: left; text-align: center; v-align: top; border: 0px;">
+		<a href="http://www.sentilo.io" target="_blank" title="www.sentilo.io" alt="www.sentilo.io" style="border: 0px;">
+			<img src="http://www.sentilo.io/wordpress/wp-content/uploads/2013/11/ori_SENTILO_sol_negre.png" width="250px">
+		</a>
+	</div>
+	<div style="width: 50%; float: left; text-align: center; v-align: top; border: 0px;">
+		<a href="http://www.thingtia.cloud" target="_blank" title="http://www.thingtia.cloud" alt="http://www.thingtia.cloud" style="border: 0px;">
+			<img src="http://www.thingtia.cloud/wp-content/uploads/2016/11/Logo-Thingtia-grande.png" width="250px">
+		</a>
+	</div>
+</div>
+
+## What is it?
+
+***node-network-contrib-sentilo*** is a collection of nodes for [Node-RED](http://nodered.org) that brings you the possibility to connect to a [***Sentilo***](http://www.sentilo.io) or [***Thingtia***](http://www.thingtia.cloud) platform server in order to interact with your data in a simple way.
+
 
 ## Install
 Run the following command in the root directory for your Node-RED install
@@ -9,10 +25,9 @@ Run the following command in the root directory for your Node-RED install
     $ npm install node-red-contrib-sentilo
 
 ## Usage
+There're three nodes into the collection that performs the basic actions over a Sentilo / Thingtia platform server: ``retrieve``, ``publish`` and ``subscribe`` to data and platform events.
 
-There're three nodes that performs the basic actions over a Sentilo/Thingtia platform server.
-
-### retrieve
+### retrieve node
 Retrieves data from the platform server. 
 ##### Data types
 Possible data types to retrieve are: 
@@ -28,7 +43,7 @@ Depending of data type, you will be able to fill some extra filter parameters, s
 ##### input / output
 This node must be triggered via an **inject node** as an input, and will retrieve the returned data as an output payload message.
 
-### publish
+### publish node
 Publishes data to the Thingtia / Sentilo platform server.
 ##### Data types
 You can publish data of types: 
@@ -41,7 +56,7 @@ Depending of the data type, you can inform the data value into a param config fr
 ##### input / output
 This node must be triggered via an **inject node** as an input (it could be empty, or will contains a JSON payload input message, depending of desired data input).
 
-#### subscribe
+### subscribe node
 Performs a subscription to the desired data type from a Sentilo/Thingtia platform server.
 The data types to subscribes can be:
 * **ALARM**
@@ -59,3 +74,4 @@ Please, feel free to look into the official Sentilo/Thingtia documentation to ge
 
 * [Sentilo website](http://www.sentilo.io)
 * [Thingtia website](http://www.thingtia.cloud)
+* [Github repository](https://github.com/sentilo/node-red-contrib-sentilo)

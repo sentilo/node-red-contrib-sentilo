@@ -3,7 +3,7 @@
         category: 'config',
         defaults: {
             alias: { value: '', required: true },
-            host: { value: '', required: true, validate: RED.validators.regex(/^((http[s]):\/\/)?([^:\/\s]+)(\:(\d+))?$/) },
+            host: { value: '', required: true, validate: RED.validators.regex(/^((http|https):\/\/)?([^:\/\s]+)(\:(\d+))?$/) },
         },
         credentials: {
             apiKey: { type: 'password', required: true }

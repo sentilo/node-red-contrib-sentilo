@@ -88,10 +88,10 @@ function getRequestHostProperties(host) {
     var port = 80;
     var targetHost = host;
     var hostTokens = host.split('://');
-    
+
     if (hostTokens.length > 1) {
-        protocol = tokens[0];
-        targetHost = tokens[1];
+        protocol = hostTokens[0];
+        targetHost = hostTokens[1];
     } 
 
     hostTokens = targetHost.split(':');
