@@ -1,6 +1,6 @@
 {
 	"name": "node-red-contrib-sentilo",
-	"version": "0.1.0",
+	"version": "0.1.2",
 	"description": "A Sentilo/Thingtia platform server nodes collection for node-red",
 	"homepage": "http://www.sentilo.io",
 	"license": "EUPL1.1, LGPLv3",
@@ -16,12 +16,21 @@
 		"type": "git",
 		"url": "https://github.com/sentilo/node-red-contrib-sentilo.git"
 	},
+	"author": {
+		"name": "sentilo",
+		"email": "io.sentilo@gmail.com",
+		"url": "http://www.sentilo.io"
+	},
 	"contributors": [
 		{
-			"name": "Ruben Rodríguez"
+			"name": "Ruben Rodríguez",
+			"email": "rrodriguez@opentrends.net",
+			"url": "https://www.npmjs.com/~rrodriguez"
 		},
 		{
-			"name": "Jordi Marqués"
+			"name": "Jordi Marqués",
+			"email": "jmarques@opentrends.net",
+			"url": "https://www.npmjs.com/~jmarques"
 		}
 	],
 	"keywords": [

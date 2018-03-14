@@ -14,7 +14,7 @@ module.exports = {
 
         var req = protocol.request(options, (res) => {
 
-            res.setEncoding('utf-8');
+            res.setEncoding('UTF-8');
             
             var responseString = '';
 
@@ -26,7 +26,7 @@ module.exports = {
                 if(responseString) {
                     var responseObject = JSON.parse(responseString);
                     if(responseObject.code) {
-                        errorCallback(responseObject.message);
+                        errorCallback(responseObject);
                     } else {
                         callback(responseObject);
                     }
@@ -38,14 +38,15 @@ module.exports = {
         });
 
         req.on('error', (e) => {
-            errorCallback(e.message);
+            errorCallback(e);
         });
 
         if(dataString) {
             req.write(dataString);
-        }
-
+        } 
+        
         req.end();
+        
     }
 };
 
@@ -60,8 +61,8 @@ function getHeaders(method, apiKey, dataString) {
     } else {
         headers = {
             'IDENTITY_KEY': apiKey,
-            'Content-Type': 'application/json',
-            'Content-Length': dataString.length
+            'Content-Type': 'application/json; charset=utf-8',
+            'Content-Length': Buffer.byteLength(dataString, 'UTF-8')
         };
     }
 

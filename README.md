@@ -48,6 +48,7 @@ Publishes data to the Thingtia / Sentilo platform server.
 ##### Data types
 You can publish data of types: 
 * **ALERT**
+* **CATALOG**
 * **DATA**
 * **ORDER**
 
@@ -75,3 +76,13 @@ Please, feel free to look into the official Sentilo/Thingtia documentation to ge
 * [Sentilo website](http://www.sentilo.io)
 * [Thingtia website](http://www.thingtia.cloud)
 * [Github repository](https://github.com/sentilo/node-red-contrib-sentilo)
+
+## Revisions
+
+* **0.1.0**
+  * First version
+* **0.1.1**
+  * Fixed some errors in the connection and data processing
+* **0.1.2 (actual)**
+  * Added catalog support to the publish node 
+  * Modified the format of the response message in case of error in the connection to the platform, now the payload and the error message returned are shown 

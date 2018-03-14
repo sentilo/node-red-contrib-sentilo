@@ -127,6 +127,12 @@
                 // Required alertId (identifier)
                 requestPath = publishAddPathToRequestPath(requestPath, identifier);
                 break;
+
+            case 'catalog':
+                // Required: providerId
+                requestPath = publishAddPathToRequestPath(requestPath, providerId);
+                break;
+                
             case 'data':
                 // Required: providerId
                 requestPath = publishAddPathToRequestPath(requestPath, providerId);
@@ -160,6 +166,10 @@
                 // Path: /alarm/identifier (tokens = 3)
                 $('#node-input-identifier').val(pathParams[2]);
                 break;
+            case 'catalog':
+                // Path: /catalog/providerId (tokens = 3)
+                $('#node-input-providerId').val(pathParams[2]);
+                break;
 
             case 'data':
                 // Path: /data/providerId/identifier/value (tokens = 5)
@@ -189,6 +199,8 @@
     function publishGetDataTypeFromUrlRaw(urlRaw) {
         if (urlRaw.startsWith('/alarm')) {
             return 'alarm';
+        } else if (urlRaw.startsWith('/catalog')) {
+            return 'catalog';
         } else if (urlRaw.startsWith('/data')) {
             return 'data';
         } else if (urlRaw.startsWith('/order')) {
@@ -266,6 +278,7 @@
         <label for="node-input-dataType"><i class="icon-tag"></i> Type</label>
         <select id="node-input-dataType">
             <option value="alarm">ALARM</option>
+            <option value="catalog">CATALOG</option>
             <option value="data" selected="true">DATA</option>
             <option value="order">ORDER</option>
         </select>
@@ -337,7 +350,13 @@
                         <li>Optional params are: none</li>
                     </ul>
                 </li>
-                <li><strong>DATA</strong> : publish one or more observations related to one or more sensors from a provider
+                <li><strong>CATALOG</strong> : creates one or more sensors or components from a provider
+                    <ul>
+                        <li>Required params are: <code>providerId</code> and the <code>input json data message</code> (please see <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs.Service.Catalog/CreateSensors" target="_blank">Sentilo API Docs for adding sensors or components to the catalog</a> for more info)</li>
+                        <li>Optional params are: none</li>
+                    </ul>
+                </li>
+				<li><strong>DATA</strong> : publish one or more observations related to one or more sensors from a provider
                     <ul>
                         <li>Required params are: <code>providerId</code>, and/or <code>sensorId</code>, the <code>input json data message</code> (please see <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Data/PublishSensorData" target="_blank">Sentilo API Docs to publish for one sensor</a>, or <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Data/PublishProviderSensorData" target="_blank">Sentilo API Docs to publish for several sensors of a provider</a> for more info)</li>
                         <li>Optional params are: <code>value</code>, if filled, it cat publish the observation inline</li>
