@@ -576,7 +576,7 @@
     <h2><strong>The 'retrieve' node</stronG></h2>
     <p>A node to retrieve data from <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
     <p>A right API configuration and required fields are mandatory for the node to work.</p>
-    <p>Please, note that this node doesn't admits any <code>msg.payload</code> input content, but it is mandatory to connect to its input an inject node in order to work with.</p>
+    <p>Please, note that this node doesn't admits any <code>msg.payload</code> as input content, but it's mandatory to connect to it input a data inject node in order to work with and fire the process start.</p>
 
     <h2><strong>How does it works</strong></h2>
         <p>Select a valid Sentilo or Thingtia platform server configuration to work with (<strong>Server</strong> field).</p>
@@ -635,6 +635,9 @@
                 </li>
             </ul>
             <p>Please, note that all above parameters and configurations must meet the specification defined into the <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">Sentilo/Thingtia API documentation</a></p>
+
+        <h3><strong>Output</strong></h3>
+            <p>As output the node will return the server response into the <code>msg.payload</code> object. The output message format depends on wich data type are you requesting. Please, see the official <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">Sentilo/Thingtia API documentation</a> to know about how they are.</p>
 
         <h3><strong>Error handling</strong></h3>
             <p>The node will throw an error if some of the nexts problems are encountered:</p>

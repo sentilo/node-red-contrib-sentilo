@@ -43,7 +43,7 @@ module.exports = function(RED) {
                     (errorMessage) => {
                         node.status({ fill: 'red', shape: 'dot', text: 'ERROR!' });
                         resetStatus(node, 5000);
-                        node.error({'payload': msg.payload,'response': errorMessage}, msg);
+                        node.error(JSON.stringify({'payload': msg.payload, 'response': errorMessage}), msg);
                     }
                 );
             }
@@ -55,6 +55,35 @@ module.exports = function(RED) {
     function publishValidateRequiredFields(node, msg) {
 
         var valid = true;
+
+        if(!node.server) {
+            node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
+            node.error('Host field content is blank in server connection with no alias');
+            if (msg) {
+                node.error('Host field content is blank in server connection with no alias', msg);
+            }
+            valid = false;
+        } else {
+            if(!node.server.host) {
+                var alias = node.server.alias || '<no alias>';
+                node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
+                node.error('Host field content is blank in server connection with alias \'' + alias + '\'');
+                if (msg) {
+                    node.error('Host field content is blank in server connection with alias \'' + alias + '\'', msg);
+                }
+                valid = false;
+            }
+        
+            if(!node.server.credentials.apiKey) {
+                var alias = node.server.alias || '<no alias>';
+                node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
+                node.error('API key field content is blank in server connection with alias \'' + alias + '\'');
+                if (msg) {
+                    node.error('API key field content is blank in server connection with alias \'' + alias + '\'', msg);
+                }
+                valid = false;
+            }
+        }
     
         switch(node.dataType.toLowerCase()) {
             case 'alarm':

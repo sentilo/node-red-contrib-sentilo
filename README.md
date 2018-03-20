@@ -79,10 +79,12 @@ Please, feel free to look into the official Sentilo/Thingtia documentation to ge
 
 ## Revisions
 
-* **0.1.0**
-  * First version
-* **0.1.1**
-  * Fixed some errors in the connection and data processing
-* **0.1.2 (actual)**
+* **0.1.3 (actual)**
+  * Added one dependency
+* **0.1.2**
   * Added catalog support to the publish node 
   * Modified the format of the response message in case of error in the connection to the platform, now the payload and the error message returned are shown 
+* **0.1.1**
+  * Fixed some errors in the connection and data processing
+* **0.1.0**
+  * First version

@@ -110,7 +110,7 @@ module.exports = function(RED) {
                         },
                         (errorMessage) => {
                             node.status({ fill: 'red', shape: 'dot', text: 'ERROR' });
-                            node.error(errorMessage, msg);
+                            node.error({'payload': payload, 'response': errorMessage}, msg);
                         }
                     );
                 }
@@ -213,22 +213,33 @@ module.exports = function(RED) {
 
         var valid = true;
     
-        if(!node.server.host) {
+        if(!node.server) {
             node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
-            node.error('Host field content is blanck in server connection with alias \'' + node.server.alias + '\'');
+            node.error('Host field content is blank in server connection with no alias');
             if (msg) {
-                node.error('Host field content is blanck in server connection with alias \'' + node.server.alias + '\'', msg);
+                node.error('Host field content is blank in server connection with no alias', msg);
             }
             valid = false;
-        }
-    
-        if(!node.server.credentials.apiKey) {
-            node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
-            node.error('API key field content is blank in server connection with alias \'' + node.server.alias + '\'');
-            if (msg) {
-                node.error('API key field content is blank in server connection with alias \'' + node.server.alias + '\'', msg);
+        } else {
+            if(!node.server.host) {
+                var alias = node.server.alias || '<no alias>';
+                node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
+                node.error('Host field content is blank in server connection with alias \'' + alias + '\'');
+                if (msg) {
+                    node.error('Host field content is blank in server connection with alias \'' + alias + '\'', msg);
+                }
+                valid = false;
             }
-            valid = false;
+        
+            if(!node.server.credentials.apiKey) {
+                var alias = node.server.alias || '<no alias>';
+                node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
+                node.error('API key field content is blank in server connection with alias \'' + alias + '\'');
+                if (msg) {
+                    node.error('API key field content is blank in server connection with alias \'' + alias + '\'', msg);
+                }
+                valid = false;
+            }
         }
     
         if(!node.baseUrl) {
