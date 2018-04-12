@@ -22,6 +22,8 @@
         },
         oneditprepare: function() {
             
+            let firstTime = true;
+            
             publishInitNode();            
 
             $('#node-input-lookup-urlRaw').click(function() {
@@ -31,7 +33,7 @@
             $('#node-input-dataType').change(function() {
                 // Prevent URL Raw field content changes
                 // if the combo changes afther an URL Raw field manually update
-                if (!urlRawChangedManually) {
+                if (!firstTime && !urlRawChangedManually) {
                     var dataType = $(this).val();
                     if (!dataType) {
                         dataType = 'data';
@@ -50,6 +52,11 @@
                     // Update the optional params panel
                     publishInitOptionalParamsPanel(dataType);
                 } 
+
+                // Prevent onLoad page changes optional params!
+                if (firstTime === true) {
+                    firstTime = false;
+                }
             });
 
             // A path modifier field has been modified

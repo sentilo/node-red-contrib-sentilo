@@ -79,7 +79,11 @@ Please, feel free to look into the official Sentilo/Thingtia documentation to ge
 
 ## Revisions
 
-* **0.1.3 (actual)**
+* **0.1.5 (actual)**
+  * Solved some litle visual issues
+* **0.1.4 **
+  * Added one dependency, that add support to old node.js versions
+* **0.1.3**
   * Added one dependency
 * **0.1.2**
   * Added catalog support to the publish node 
