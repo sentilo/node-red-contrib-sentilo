@@ -1,5 +1,8 @@
 'use strict';
 
+/**
+    This Node is inspired by the httpin node
+*/
 var restClient = require('../libs/sentiloRestClient');
 var bodyParser = require('body-parser');
 var cookieParser = require("cookie-parser");
@@ -33,20 +36,17 @@ module.exports = function(RED) {
             this.errorHandler = (err, req, res, next) => {
                 node.status({ fill: 'red', shape: 'dot', text: 'ERROR!' });
                 resetStatus(node, 5000);
-                node.error(err, msg);
+                node.error('Caught error:', err);
                 res.sendStatus(500);
             };
 
-            this.callback = (req, res) => {
+            this.callback = (req, res, next) => {
                 node.status({ fill: 'green', shape: 'ring', text: 'Processing call...' });
-
-                var msgid = RED.util.generateId();
-                res._msgid = msgid;
-                node.send({ _msgid: msgid, req: req, res: createResponseWrapper(node, res), payload: req.body });
-
+                node.send( [ { payload: req.body }, null, null ]);
                 res.status(200).send();
                 node.status({ fill: 'green', shape: 'dot', text: 'Success' });
                 resetStatus(node, 5000);
+                return next();
             };
 
             var metricsHandler = (req, res, next) => { next(); }
@@ -67,8 +67,7 @@ module.exports = function(RED) {
                 });
             });
             
-            node.on('input', (msg) => {
-            	
+            node.on('input', (msg, nodeSend, nodeDone) => {
                 if (subscribeValidateRequiredFields(node, msg)) {
         
                     var callbackUri = url.parse(node.callbackUrl);
@@ -103,14 +102,26 @@ module.exports = function(RED) {
                         'PUT',
                         node.server.host,
                         requestPath,
+                        node.server.acceptUntrusted,
                         node.server.credentials.apiKey,
                         payload,
                         (responseObject) => {
                             node.status({ fill: 'blue', shape: 'ring', text: 'Ready' });
-                        },
+
+                            msg.payload = responseObject.message;
+                            var msg2 = { payload: responseObject.code }
+                            nodeSend([ null, msg, msg2 ]);
+                            if(nodeDone) nodeDone();
+                       },
                         (errorMessage) => {
                             node.status({ fill: 'red', shape: 'dot', text: 'ERROR' });
                             node.error({'payload': payload, 'response': errorMessage}, msg);
+
+                            msg.payload = errorMessage.message;
+                            var msg2 = { payload: errorMessage.code}
+                            nodeSend([ null, msg, msg2 ]);
+                            if(nodeDone) nodeDone();
+
                         }
                     );
                 }
@@ -149,7 +160,7 @@ module.exports = function(RED) {
             } else if (parsedType.subtype !== "octet-stream") {
                 checkUTF = true;
             } else {
-                // applicatino/octet-stream
+                // application/octet-stream
                 isText = false;
             }
         }
@@ -163,50 +174,9 @@ module.exports = function(RED) {
                 buf = buf.toString()
             }
             req.body = buf;
+	    console.log('REQ.BODY'+req.body);
             next();
         });
-    }
-
-    function createResponseWrapper(node, res) {
-        var wrapper = {
-            _res: res
-        };
-        var toWrap = [
-            "append",
-            "attachment",
-            "cookie",
-            "clearCookie",
-            "download",
-            "end",
-            "format",
-            "get",
-            "json",
-            "jsonp",
-            "links",
-            "location",
-            "redirect",
-            "render",
-            "send",
-            "sendfile",
-            "sendFile",
-            "sendStatus",
-            "set",
-            "status",
-            "type",
-            "vary"
-        ];
-        toWrap.forEach(function(f) {
-            wrapper[f] = function() {
-                node.warn(RED._("httpin.errors.deprecated-call", { method: "msg.res." + f }));
-                var result = res[f].apply(res, arguments);
-                if (result === res) {
-                    return wrapper;
-                } else {
-                    return result;
-                }
-            }
-        });
-        return wrapper;
     }
 
     function subscribeValidateRequiredFields(node, msg) {

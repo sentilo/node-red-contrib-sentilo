@@ -4,10 +4,12 @@
         defaults: {
             alias: { value: '', required: true },
             host: { value: '', required: true, validate: RED.validators.regex(/^((http|https):\/\/)?([^:\/\s]+)(\:(\d+))?$/) },
+            acceptUntrusted: { value: false, required: false }
         },
         credentials: {
             apiKey: { type: 'password', required: true }
         },
+
         label: function() {
             return this.alias || this.host;
         }
@@ -22,6 +24,10 @@
     <div class="form-row">
         <label for="node-config-input-host"><i class="icon-bookmark"></i> Host</label>
         <input type="text" id="node-config-input-host" placeholder="http://">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-acceptUntrusted"><i class="icon-bookmark"></i> Accept untrusted TLS</label>
+        <input type="checkbox" id="node-config-input-acceptUntrusted" style="display: inline-block; width: auto; vertical-align: top;">
     </div>
     <div class="form-row">
         <label for="node-config-input-apiKey"><i class="fa fa-key"></i> API Key</label>
@@ -39,9 +45,11 @@
             <ul>
                 <li><code>http[s]://</code> - the protocol, is optional, the node will take <i>http</i> by default</li>
                 <li><code>server</code> - the domain name or IP of the server containing the API for Sentilo / Thingtia</li>
-                <li><code>:port</code> - the port where the API is listening, is optional, this value will be <i>:80</i> by default</li>
+                <li><code>:port</code> - the port where the API is listening, is optional, but note that this value will be <i><strong>:80</strong></i> for <i>http</i> protocol, or <i><strong>:443</i></strong> for <i>https</i> protocol, by default if none is set.</li>
             </ul>
-        </i>
+            <p>Do not include final slash or path parts at the end. Example: <code>https://api.thingtia.cloud</code></p>
+        </li>
+        <li><code>Accept untrusted TLS</code> - whether to trust or not a remote https that does not provide a valid certificate</li>
         <li><code>API key</code> - the API key for Sentilo/Thingtia API from your <i>Provider</i> detail</li>
     </ul>
 </script>

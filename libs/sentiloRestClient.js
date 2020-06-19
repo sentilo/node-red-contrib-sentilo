@@ -1,7 +1,7 @@
 
 module.exports = {
     
-    request: function(method, host, path, apiKey, payload, callback, errorCallback) {
+    request: function(method, host, path, acceptUntrusted, apiKey, payload, callback, errorCallback) {
 
         var dataString = JSON.stringify(payload);
         var requestHostProperties = getRequestHostProperties(host);
@@ -10,12 +10,16 @@ module.exports = {
         var protocol = require('http');
         if (requestHostProperties.protocol === 'https') {
             protocol = require('https');
+
+            if(acceptUntrusted == true) {
+                options.rejectUnauthorized = false;
+            }
         }
 
         var req = protocol.request(options, (res) => {
 
             res.setEncoding('UTF-8');
-            
+
             var responseString = '';
 
             res.on('data', (data) => {
@@ -23,18 +27,24 @@ module.exports = {
             });
 
             res.on('end', () => {
+                var response = {};
+
                 if(responseString) {
-                    var responseObject = JSON.parse(responseString);
-                    if(responseObject.code) {
-                        errorCallback(responseObject);
-                    } else {
-                        callback(responseObject);
+                    try{
+                        response.message = JSON.parse(responseString);
+                    } catch(error) {
+                        console.error("The reponse was not a parseable JSON: "+responseString);
                     }
+
+                }
+                response.code = res.statusCode;
+
+                if(response.code == 200) {
+                    callback(response);
                 } else {
-                    callback(payload);
+                    errorCallback(response);
                 }
             });
-
         });
 
         req.on('error', (e) => {
@@ -85,22 +95,23 @@ function getRequestOptions(method, requestHostProperties, path, apiKey, dataStri
 
 function getRequestHostProperties(host) {
 
-    var protocol = 'http';
-    var port = 80;
-    var targetHost = host;
-    var hostTokens = host.split('://');
+    var targetHost, port, protocol;
 
-    if (hostTokens.length > 1) {
-        protocol = hostTokens[0];
-        targetHost = hostTokens[1];
-    } 
+    if (!host.startsWith('http')) host = 'http://' + host;
 
-    hostTokens = targetHost.split(':');
-    if (hostTokens.length > 1) {
-        targetHost = hostTokens[0];
-        port = hostTokens[1];
-    }
-    
+    var url = new URL(host);
+
+    if(url.protocol == 'http:') protocol = 'http';
+    else if(url.protocol == 'https:') protocol = 'https';
+    else protocol = 'http';
+
+    if(url.port) port = url.port;
+    else if (protocol == 'http') port = 80;
+    else if (protocol == 'https') port = 443;
+    else port = 80;
+
+    targetHost = url.hostname;
+
     return {
         'host' : targetHost,
         'port' : port,

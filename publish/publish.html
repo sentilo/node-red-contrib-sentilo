@@ -15,6 +15,8 @@
             urlRaw:     { value: "" }
         },
         inputs:1,
+        outputs:2,
+        outputLabels: ["Sentilo complete response message","Sentilo response HTTP code"],
         icon: "sentilo.png",
         align: "right",
         label: function() {
@@ -325,13 +327,12 @@
 <script type="text/x-red" data-help-name="publish">
 
     <h2><strong>The 'publish' node</stronG></h2>
-        <p>A node to publish data from <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
-        <p>A right API configuration and required fields are mandatory for the node to work.</p>
+        <p>This node publishes data from <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
         <p>Possible datat types are: <code>ALARM</code>, <code>CATALOG</code>, <code>DATA</code> or <code>ORDER</code></p>
     
-    <h2><strong>How does it works</strong></h2>
+    <h2><strong>How does it work</strong></h2>
         <p>Select a valid Sentilo or Thingtia platform server configuration to work with (<strong>Server</strong> field).</p>
-        <p>You must provide required config into required dependent fields, such like <strong>Provider Id</strong> or <strong>Id</strong>, depending on the type of data you want to publish.</p>
+        <p><strong>Provider Id</strong> or <strong>Id</strong> are required, depending on the type of data you want to publish.</p>
         <p>You can fill your own <strong>url-raw request</strong> parameters into the <strong>URL Raw</strong> field, and the node will recognize the related params.</p>
         <p>Alternatively, you can edit them by clicking in the editor button, that will expand the optional params form.</p>
     
@@ -339,44 +340,62 @@
             <ul>
                 <li><strong>Server</strong>: se Sentilo / Thingtia server credentials</li>
                 <li><strong>Provider</strong>: the <code>providerId</code>, required for <code>DATA</code> and <code>ORDER</code> subscription data types</li>
-                <li><strong>Data type</strong>: the data type to wich to publish: <code>ALARM</code>, <code>DATA</code> or <code>ORDER</code></li>
-                <li><strong>Id</strong>: the element identifier, it could be optional when you'll publish for <code>DATA</code> and <code>ORDER</code> data types, and required for <strong>alertId</strong> when <code>ALARM</code> data type is selected </li>
+                <li><strong>Data type</strong>: the data type you want to publish: <code>ALARM</code>, <code>DATA</code> or <code>ORDER</code></li>
+                <li>
+                    <strong>Id</strong>: the element identifier, optional for <code>DATA</code> and <code>ORDER</code> data types.
+                    If left blank, you might publish to several sensors at once (you may find the message structure for this case in the docs).
+                    When <code>ALARM</code> data type is selected, the id of the particular <strong>alertId</strong> is required.
+                </li>
                 <li><strong>URL Raw</strong>: the call url that will be sended as a request to the Sentilo / Thingtia platform server  (it could be edited manually or filling the optional config parameters)</li>
                 <li><strong>Name</strong>: the node descriptive name</li>
             </ul>
 
         <h3><strong>Data injection</strong></h3>
-            <p>You can inject data as JSON format using an <strong>Inject node</strong>, through the <code>msg.payload</code> object, in order to send it to the Sentilo / Thingtia platform server, as described in the <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">offial documentation</a> (please, see the related message format documentation according to the selected node type)</p>
+            <p>You can inject data as JSON format using an <strong>Inject node</strong>, through the <code>msg.payload</code> object, in order to send it to the Sentilo / Thingtia platform server, as described in the <a href="https://sentilo.readthedocs.io/en/latest/api_docs.html" target="_blank">official documentation</a>. Please note that the message format varies according to the selected data type</p>
         
         <h3><strong>Optional params</strong></h3>
             <p>Optional params are dependent of the desired retrieved data type, and it could be needed some payload or json data input (injected with an <strong>input inject node</strong> through the <code>msg.payload</code> object):</p>
             <ul>
                 <li><strong>ALARM</strong> : publish an alarm related with an alert
                     <ul>
-                        <li>Required params are: <code>alertId</code>, the input json data message (please see <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs.Services.Alarm/PublishAlarm" target="_blank">Sentilo API Docs</a> for more data input message format info)</li>
+                        <li>Required params are: <code>alertId</code>, the input json data message (see <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/alarm/alarm.html" target="_blank">Sentilo API Docs</a> for more data input message format info)</li>
                         <li>Optional params are: none</li>
                     </ul>
                 </li>
                 <li><strong>CATALOG</strong> : creates one or more sensors or components from a provider
                     <ul>
-                        <li>Required params are: <code>providerId</code> and the <strong>input json data message</strong> (please see <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs.Service.Catalog/CreateSensors" target="_blank">Sentilo API Docs for adding sensors or components to the catalog</a> for more info)</li>
+                        <li>Required params are: <code>providerId</code> and the <strong>input json data message</strong> (see <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/catalog/create_sensors.html" target="_blank">Sentilo API Docs for adding sensors or components to the catalog</a> for more info)</li>
                         <li>Optional params are: none</li>
                     </ul>
                 </li>
 				<li><strong>DATA</strong> : publish one or more observations related to one or more sensors from a provider
                     <ul>
-                        <li>Required params are: <code>providerId</code>, and/or <code>sensorId</code>, the <strong>input json data message</strong> (please see <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Data/PublishSensorData" target="_blank">Sentilo API Docs to publish for one sensor</a>, or <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Data/PublishProviderSensorData" target="_blank">Sentilo API Docs to publish for several sensors of a provider</a> for more info)</li>
+                        <li>Required params are: <code>providerId</code>, and/or <code>sensorId</code>, the <strong>input json data message</strong> (see <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/data/publish_sensor_data.html" target="_blank">Sentilo API Docs to publish for one sensor</a>, or <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/data/publish_provider_sensor_data.html" target="_blank">Sentilo API Docs to publish for several sensors of a provider</a> for more info)</li>
                         <li>Optional params are: <code>value</code>, if filled, it cat publish the observation inline</li>
                     </ul>
                 </li>
                 <li><strong>ORDER</strong> : publish an order related to one or more sensors from a provider
                     <ul>
-                        <li>Required params are: <code>providerId</code>, and/or <code>sensorId</code>, the <strong>input json data message</strong> (please see <a href="http://www.sentilo.io/xwiki/bin/view/ApiDocs.Services.Order/PublishOrder" target="_blank">Sentilo API Docs to publish an order</a> for more info)</li>
+                        <li>Required params are: <code>providerId</code>, and/or <code>sensorId</code>, the <strong>input json data message</strong> (see <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/order/publish_order.html" target="_blank">Sentilo API Docs to publish an order</a> for more info)</li>
                         <li>Optional params are: none</li>
                     </ul>
                 </li>
             </ul>
-            <p>Please, note that all above parameters and configurations must meet the specification defined into the <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">Sentilo/Thingtia API documentation</a></p>
+
+     <h3><strong>Outputs</strong></h3>
+            <ul>
+                <li>
+                    First output is a Sentilo / Thingtia server's JSON response to the
+                    <a href="Sentilo/Thingtia API documentation" target="_blank">API</a> request.
+                    Note that if the publish operation goes well, Sentilo doen not respond with anything else that HTTP code.
+                    In this case there the message is undefined.
+                </li>
+                <li>
+                    Third output is the resulting HTTP status code of the API request.
+                    Possible status codes are listed <a href="https://sentilo.readthedocs.io/en/latest/api_docs/general_model.html#response" target="_blank">here</a>,
+                    but should you have connectivity or configuration issues, you might get other codes as well.
+                </li>
+            </ul>
 
         <h3><strong>Error handling</strong></h3>
             <p>The node will throw an error if some of the nexts problems are encountered:</p>

@@ -18,7 +18,7 @@ module.exports = function(RED) {
         node.identifier = config.identifier;
         node.dataType = config.dataType;
 
-        node.on('input', (msg) => {
+        node.on('input', (msg, nodeSend, nodeDone) => {
 
             if (retrieveValidateRequiredFields(node, msg)) {
                 
@@ -28,18 +28,27 @@ module.exports = function(RED) {
                     'GET',
                     node.server.host,
                     node.path,
+                    node.server.acceptUntrusted,
                     node.server.credentials.apiKey,
                     null, // In GET methods there aren't input data
                     (responseObject) => {
                         node.status({ fill: 'green', shape: 'dot', text: 'Success' });
                         resetStatus(node, 5000);
-                        msg.payload = responseObject;
-                        node.send(msg);
+
+                        msg.payload = responseObject.message;
+                        var msg2 = { payload: responseObject.code }
+                        nodeSend([ msg, msg2 ]);
+                        if(nodeDone) nodeDone();
                     },
                     (errorMessage) => {
                         node.status({ fill: 'red', shape: 'dot', text: 'ERROR!' });
                         resetStatus(node, 5000);
                         node.error({'payload': {}, 'response': errorMessage}, msg);
+
+                        msg.payload = errorMessage.message;
+                        var msg2 = { payload: errorMessage.code}
+                        nodeSend([ msg, msg2 ]);
+                        if(nodeDone) nodeDone();
                     }
                 );
             

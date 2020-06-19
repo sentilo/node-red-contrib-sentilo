@@ -25,61 +25,72 @@ Run the following command in the root directory for your Node-RED install
     $ npm install node-red-contrib-sentilo
 
 ## Usage
-There're three nodes into the collection that performs the basic actions over a Sentilo / Thingtia platform server: ``retrieve``, ``publish`` and ``subscribe`` to data and platform events.
+Package adds 3 nodes into the Node-RED's palette that provide basic interactions with a Sentilo / Thingtia platform server: ``retrieve``, ``publish`` and ``subscribe`` to data and platform events.
 
-### retrieve node
+### Retrieve Node
 Retrieves data from the platform server. 
 ##### Data types
 Possible data types to retrieve are: 
-* **ALARM**
-* **ALERT**
-* **CATALOG**
-* **DATA**
-* **ORDER**
-* **SUBSCRIBE**
+* ALARM
+* ALERT
+* CATALOG
+* DATA
+* ORDER
+* SUBSCRIBE
 
-Depending of data type, you will be able to fill some extra filter parameters, such like *limit* number of observations, of *from/to* observations publish dates.
+Depending of data type, you will be able to fill some extra filter parameters, such like *limit* number of observations, or *from/to* observations publish dates.
 
-##### input / output
-This node must be triggered via an **inject node** as an input, and will retrieve the returned data as an output payload message.
+##### Input / output
+This node must be triggered by plugging an **inject node** in the input. Node will output the returned Sentilo message as well as the HTTP status code, in two separate outputs.
 
-### publish node
+### Publish Node
 Publishes data to the Thingtia / Sentilo platform server.
 ##### Data types
 You can publish data of types: 
-* **ALERT**
-* **CATALOG**
-* **DATA**
-* **ORDER**
+* ALERT
+* CATALOG
+* DATA
+* ORDER
 
-Depending of the data type, you can inform the data value into a param config from node config page, or publish a body json message, injecting it via **inject node** *(please, note that the input payload message must follow the specification defined for each kind of service, into the [Sentilo/Thingtia API Services Documentation](http://www.sentilo.io/xwiki/bin/view/APIDocs/Services))*.
+Depending of the data type, you can inform the data value into a param config from node config page, or injecting full JSON message via **inject node**
 
-##### input / output
-This node must be triggered via an **inject node** as an input (it could be empty, or will contains a JSON payload input message, depending of desired data input).
+##### Input / output
+This node must be triggered via an **inject node** on the input (event might either be empty or might contain a JSON payload input message).
+Node will output the returned Sentilo message (if any) as well as the HTTP status code, in two separate outputs.
 
 ### subscribe node
-Performs a subscription to the desired data type from a Sentilo/Thingtia platform server.
-The data types to subscribes can be:
-* **ALARM**
-* **DATA**
-* **ORDER**
+Creates a HTTP endpoint that will use Sentilo to forward its event messages.
+Your Node-RED instance has to be therefore reachable from your Sentilo instance. 
+Also creates a subscription to a Sentilo/Thingtia platform server via API.
+Possible data types are:
+* ALARM
+* DATA
+* ORDER
 
-The node will publish as output payload message the notification message from the Sentilo/Thingtia platform server. This notification message will follow the [Sentilo Subscription response specification](http://www.sentilo.io/xwiki/bin/view/APIDocs.Services/Subscription).
 
-##### input / output
-The **subscribe node** will be activated on Node-Red flows deployment, and will publish as an output the retrieved subscription notification messages.
+##### Input / output
+No input - the Subscribe Node is activated on Node-Red flow deployment. At this moment it creates the HTTP endpoint, 
+as well as it creates or re-creates the subscription. Outputs:
+* First output returns the retrieved subscription notification messages.
+* Second output returns Sentilo response message of the subscription creation call (executed only on deploy)
+* Third output returns Sentilo HTTP status code of the subscription creation call (executed only on deploy)
+
 
 ## Related documentation
 
 Please, feel free to look into the official Sentilo/Thingtia documentation to get more info:
-
+* [Sentilo Documentation](https://sentilo.readthedocs.io/en/latest/)
 * [Sentilo website](http://www.sentilo.io)
 * [Thingtia website](http://www.thingtia.cloud)
 * [Github repository](https://github.com/sentilo/node-red-contrib-sentilo)
 
 ## Revisions
 
-* **0.1.5 (actual)**
+* **0.2.0 (actual)**
+  * Node-RED 1.0 compatibility
+  * Fixed server configuration, allowing non-standard ports
+  * All nodes get specific outputs with HTTP status of the Sentilo REST API call. Can be useful for handling errors.
+* **0.1.5**
   * Solved some litle visual issues
 * **0.1.4 **
   * Added one dependency, that add support to old node.js versions

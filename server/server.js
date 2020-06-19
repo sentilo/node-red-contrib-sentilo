@@ -6,6 +6,7 @@ module.exports = function(RED) {
 
         node.alias = config.alias;
         node.host = config.host;
+        node.acceptUntrusted = config.acceptUntrusted;
     }
 
     RED.nodes.registerType('server', SentiloServerNode, {

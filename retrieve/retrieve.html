@@ -42,7 +42,8 @@
             name:               { value:"" }
         },
         inputs:1,
-        outputs:1,
+        outputs:2,
+        outputLabels: ["Sentilo complete response message","Sentilo response HTTP code"],
         icon: "sentilo.png",
         label: function() {
             return this.name || "retrieve";
@@ -581,11 +582,13 @@
 <script type="text/x-red" data-help-name="retrieve">
 
     <h2><strong>The 'retrieve' node</stronG></h2>
-    <p>A node to retrieve data from <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
-    <p>A right API configuration and required fields are mandatory for the node to work.</p>
-    <p>Please, note that this node doesn't admits any <code>msg.payload</code> as input content, but it's mandatory to connect to it input a data inject node in order to work with and fire the process start.</p>
+    <p>This node retrieves data from <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
+    <p>
+        Please note that this node doesn't admit any <code>msg.payload</code> as input content,
+        however it's necessary to connect it to a data inject node.
+    </p>
 
-    <h2><strong>How does it works</strong></h2>
+    <h2><strong>How does it work</strong></h2>
         <p>Select a valid Sentilo or Thingtia platform server configuration to work with (<strong>Server</strong> field).</p>
         <p>You must provide required config into required dependent fields, such like <strong>Provider Id</strong> or <strong>Id</strong>, depending on the type of data you want to retrieve.</p>
         <p>You can fill your own url-raw request parameters into the <strong>URL Raw</strong> field, and the node will recognize the related params.</p>
@@ -596,7 +599,12 @@
                 <li><strong>Server</strong>: se Sentilo / Thingtia server credentials</li>
                 <li><strong>Provider</strong>: the <code>providerId</code>, required for <code>ALERT</code>, <code>DATA</code> and <code>ORDER</code> data types</li>
                 <li><strong>Data type</strong>: the data type that you want retrieve: <code>ALARM</code>, <code>ALERT</code>, <code>CATALOG</code>, <code>DATA</code>, <code>ORDER</code> or <code>SUBSCRIBE</code></li>
-                <li><strong>Id</strong>: the element identifier, it could be used to retrieve <code>ALARM</code>, <code>ALERT</code>, <code>DATA</code> and <code>ORDER</code></li>
+                <li><strong>Id</strong>: the element identifier, can be used to retrieve a particular <code>ALARM</code>, <code>ALERT</code>, <code>DATA</code> and <code>ORDER</code></li>
+                <li>
+                    <strong>Id</strong>: the element identifier, is optional for <code>DATA</code> and <code>ORDER</code> data types.
+                    If left blank, observations of all provider's sensors will be retrieved.
+                    When <code>ALARM</code> data type is selected, the id of the particular <strong>alertId</strong> is required.
+                </li>
                 <li><strong>URL Raw</strong>: the call url that will be sended as a request to the Sentilo / Thingtia platform server (it could be edited manually or filling the optional config parameters)</li>
                 <li><strong>Name</strong>: the node descriptive name</li>
             </ul>
@@ -641,13 +649,26 @@
                     </ul>
                 </li>
             </ul>
-            <p>Please, note that all above parameters and configurations must meet the specification defined into the <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">Sentilo/Thingtia API documentation</a></p>
+            <p>Please, note that all above parameters and configurations must meet the specification defined into the <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services.html" target="_blank">Sentilo/Thingtia API documentation</a></p>
 
-        <h3><strong>Output</strong></h3>
-            <p>As output the node will return the server response into the <code>msg.payload</code> object. The output message format depends on wich data type are you requesting. Please, see the official <a href="http://www.sentilo.io/xwiki/bin/view/APIDocs/WebHome" target="_blank">Sentilo/Thingtia API documentation</a> to know about how they are.</p>
+
+        <h3><strong>Outputs</strong></h3>
+            <ul>
+                <li>
+                    First output is a Sentilo / Thingtia server's JSON response to the
+                    <a href="Sentilo/Thingtia API documentation" target="_blank">API</a> request.
+                    The output will vay on the data type you have chosen.
+                </li>
+                <li>
+                    Third output is the resulting HTTP status code of the API request.
+                    Possible status codes are listed <a href="https://sentilo.readthedocs.io/en/latest/api_docs/general_model.html#response" target="_blank">here</a>,
+                    but should you have connectivity of configuration issues, you might get other codes as well.
+                </li>
+            </ul>
+
 
         <h3><strong>Error handling</strong></h3>
-            <p>The node will throw an error if some of the nexts problems are encountered:</p>
+            <p>The node will throw an error if some of the following problems are found:</p>
             <ul>
                 <li>Sentilo / Thingtia API returns an error</li>
                 <li>A required field of settings is not set</li>
