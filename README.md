@@ -92,7 +92,7 @@ Please, feel free to look into the official Sentilo/Thingtia documentation to ge
   * All nodes get specific outputs with HTTP status of the Sentilo REST API call. Can be useful for handling errors.
 * **0.1.5**
   * Solved some litle visual issues
-* **0.1.4 **
+* **0.1.4**
   * Added one dependency, that add support to old node.js versions
 * **0.1.3**
   * Added one dependency
