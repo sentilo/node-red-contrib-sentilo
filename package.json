@@ -1,8 +1,8 @@
 {
 	"name": "node-red-contrib-sentilo",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "A Sentilo/Thingtia platform server nodes collection for node-red",
-	"homepage": "http://www.sentilo.io",
+	"homepage": "https://www.sentilo.io",
 	"license": "EUPL1.1, LGPLv3",
 	"dependencies": {
 		"body-parser": "^1.17.2",
@@ -21,7 +21,7 @@
 	"author": {
 		"name": "sentilo",
 		"email": "io.sentilo@gmail.com",
-		"url": "http://www.sentilo.io"
+		"url": "https://www.sentilo.io"
 	},
 	"contributors": [
 		{
@@ -51,7 +51,8 @@
 		"nodes": {
 			"retrieve": "retrieve/retrieve.js",
 			"publish": "publish/publish.js",
-			"subscribe": "subscribe/subscribe.js",
+			"subscribe-with-endpoint": "subscribe-with-endpoint/subscribe-with-endpoint.js",
+			"subscribe-without-endpoint": "subscribe-without-endpoint/subscribe-without-endpoint.js",
 			"server": "server/server.js"
 		}
 	}

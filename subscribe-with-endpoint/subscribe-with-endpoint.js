@@ -17,7 +17,7 @@ var url = require('url');
 
 module.exports = function(RED) {
     
-	function Subscribe(config) {
+	function SubscribeWithEndpoint(config) {
         RED.nodes.createNode(this, config);
         
         var node = this;
@@ -273,7 +273,7 @@ module.exports = function(RED) {
         RED.httpNode.options("*", corsHandler);
     }	
 	
-    RED.nodes.registerType('subscribe', Subscribe);
+    RED.nodes.registerType('subscribe-with-endpoint', SubscribeWithEndpoint);
 
 }
 

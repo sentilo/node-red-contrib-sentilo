@@ -3,13 +3,13 @@ node-red-contrib-sentilo
 
 <div style="width: 100%; margin: 50px 0px 250px 0px; border: 0px;">
 	<div style="width: 50%; float: left; text-align: center; v-align: top; border: 0px;">
-		<a href="http://www.sentilo.io" target="_blank" title="www.sentilo.io" alt="www.sentilo.io" style="border: 0px;">
-			<img src="http://www.sentilo.io/wordpress/wp-content/uploads/2013/11/ori_SENTILO_sol_negre.png" width="250px">
+		<a href="https://www.sentilo.io" target="_blank" title="www.sentilo.io" alt="https://www.sentilo.io" style="border: 0px;">
+			<img src="https://www.sentilo.io/wordpress/wp-content/uploads/2013/11/ori_SENTILO_sol_negre.png" width="250px">
 		</a>
 	</div>
 	<div style="width: 50%; float: left; text-align: center; v-align: top; border: 0px;">
-		<a href="http://www.thingtia.cloud" target="_blank" title="http://www.thingtia.cloud" alt="http://www.thingtia.cloud" style="border: 0px;">
-			<img src="http://www.thingtia.cloud/wp-content/uploads/2016/11/Logo-Thingtia-grande.png" width="250px">
+		<a href="https://www.thingtia.cloud" target="_blank" title="http://www.thingtia.cloud" alt="https://www.thingtia.cloud" style="border: 0px;">
+			<img src="https://www.thingtia.cloud/wp-content/uploads/2016/11/Logo-Thingtia-grande.png" width="250px">
 		</a>
 	</div>
 </div>
@@ -25,7 +25,7 @@ Run the following command in the root directory for your Node-RED install
     $ npm install node-red-contrib-sentilo
 
 ## Usage
-Package adds 3 nodes into the Node-RED's palette that provide basic interactions with a Sentilo / Thingtia platform server: ``retrieve``, ``publish`` and ``subscribe`` to data and platform events.
+Package adds 4 nodes to the Node-RED's palette that provide basic interactions with a Sentilo / Thingtia platform server: ``retrieve``, ``publish`` and ``subscribe`` to data and platform events.
 
 ### Retrieve Node
 Retrieves data from the platform server. 
@@ -52,13 +52,11 @@ You can publish data of types:
 * DATA
 * ORDER
 
-Depending of the data type, you can inform the data value into a param config from node config page, or injecting full JSON message via **inject node**
-
 ##### Input / output
 This node must be triggered via an **inject node** on the input (event might either be empty or might contain a JSON payload input message).
 Node will output the returned Sentilo message (if any) as well as the HTTP status code, in two separate outputs.
 
-### subscribe node
+### Subscribe With Endpoint node
 Creates a HTTP endpoint that will use Sentilo to forward its event messages.
 Your Node-RED instance has to be therefore reachable from your Sentilo instance. 
 Also creates a subscription to a Sentilo/Thingtia platform server via API.
@@ -69,24 +67,43 @@ Possible data types are:
 
 
 ##### Input / output
-No input - the Subscribe Node is activated on Node-Red flow deployment. At this moment it creates the HTTP endpoint, 
+No input - the Subscribe With Endpoint Node is activated on Node-Red flow deployment. At this moment it creates the HTTP endpoint, 
 as well as it creates or re-creates the subscription. Outputs:
 * First output returns the retrieved subscription notification messages.
 * Second output returns Sentilo response message of the subscription creation call (executed only on deploy)
 * Third output returns Sentilo HTTP status code of the subscription creation call (executed only on deploy)
 
 
+### Subscribe Without Endpoint node
+At a difference with the previous node, this node only creates a subscription to a Sentilo/Thingtia platform server via API.
+Another HTTP have to be used as callback URL, for example "Http In" node of even "Subscribe With Endpoint".
+Possible data types are:
+* ALARM
+* DATA
+* ORDER
+
+
+##### Input / output
+No input - the Subscribe With Endpoint Node is activated on Node-Red flow deployment. At this moment it creates the HTTP endpoint, 
+as well as it creates or re-creates the subscription. Outputs:
+* First output returns the retrieved subscription notification messages.
+* Second output returns Sentilo response message of the subscription creation call (executed only on deploy)
+
+
 ## Related documentation
 
 Please, feel free to look into the official Sentilo/Thingtia documentation to get more info:
 * [Sentilo Documentation](https://sentilo.readthedocs.io/en/latest/)
-* [Sentilo website](http://www.sentilo.io)
-* [Thingtia website](http://www.thingtia.cloud)
+* [Sentilo website](https://www.sentilo.io)
+* [Thingtia website](https://www.thingtia.cloud)
 * [Github repository](https://github.com/sentilo/node-red-contrib-sentilo)
 
 ## Revisions
 
-* **0.2.0 (actual)**
+* **0.3.0 (actual)**
+  * Added the 'subscribe-without-endpoint' node
+  * The 'subscribe' node renamed to 'subscribe-with-endpoint'
+* **0.2.0**
   * Node-RED 1.0 compatibility
   * Fixed server configuration, allowing non-standard ports
   * All nodes get specific outputs with HTTP status of the Sentilo REST API call. Can be useful for handling errors.

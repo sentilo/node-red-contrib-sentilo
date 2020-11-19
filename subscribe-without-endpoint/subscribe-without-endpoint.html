@@ -1,0 +1,134 @@
+<script type="text/javascript">
+
+RED.nodes.registerType('subscribe-without-endpoint',{
+    category: 'sentilo',
+    color: '#f0f0f0',
+    defaults: {
+        name: { value: "" },
+        server: { type: "server", required: true },
+        providerId: { value: "providerId", required: true, readonly: true },
+        subscriptionType: { value: "subscriptionType", required: true, readonly: true },
+        identifier: { value: "identifier" , required: true, readonly: true },
+        callbackUrl: { value: "callbackUrl", required: true, readonly: true }
+    },
+    inputs:1,
+    outputs: 2,
+    outputLabels: [ "Sentilo API response message","Sentilo response HTTP code"],
+    icon: "sentilo.png",
+    label: function() {
+        return this.name || "subscribe-without-endpoint";
+    }
+});
+
+
+
+</script>
+
+<script type="text/x-red" data-template-name="subscribe-without-endpoint">
+
+    <!-- Sentilo Server -->
+    <div id="server-shape" class="form-row">
+        <label for="node-input-server"><i class="fa fa-globe"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+
+    <!-- Provider Id -->
+    <div id="provider-shape" class="form-row">
+        <label for="node-input-providerId"><i class="icon-tag"></i> Provider</label>
+        <input type="text" id="node-input-providerId" placeholder="providerId" readonly>
+    </div>
+
+    <!-- Subscription Type -->
+    <div id="sensor-shape" class="form-row">
+        <label for="node-input-subscriptionType"><i class="icon-tag"></i> Data type (data|order|alarm)</label>
+        <input type="text" id="node-input-subscriptionType" placeholder="subscriptionType" readonly>
+    </div>
+
+
+    <!-- Id -->
+    <div id="sensor-shape" class="form-row">
+        <label for="node-input-identifier"><i class="icon-tag"></i> Id</label>
+        <input type="text" id="node-input-identifier" placeholder="identifier" readonly>
+    </div>
+
+    <!-- Callback URL -->
+    <div class="form-row">
+        <label for="node-input-callbackUrl"><i class="fa fa-globe"></i> Callback URL</label>
+        <input type="text" id="node-input-callbackUrl" placeholder="callbackUrl" readonly>
+    </div>
+
+    <!-- Node name -->
+    <div id="name-shape" class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="name">
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="subscribe-without-endpoint">
+
+    <h2><strong>The 'subscribe-without-endpoint' node</strong></h2>
+
+        <p>The node subscribes to events from a <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
+
+        <p>Unlike the 'subscribe-with-endpoint' node, this node does not create a HTTP endpoint by itself.</p>
+
+        <p>Another difference with the 'subscribe-with-endpoint' node is that 4 of its parameters are being read from the incoming message.
+        For example, you might have the following code in the preceeding Function node:
+        <pre><code>
+        messages = [];
+        messages.push ( {
+            identifier: msg.payload.id,
+            providerId: global.get("PROVIDER_ID"),
+            subscriptionType: 'alarm',
+            callbackUrl: global.get("CALLBACK_URL")
+        });
+        return [ messages ];</code>
+        </pre>
+        In this example, a alert id is injected by some previous steps of the flow. Provider and Callback URL are being read
+        from global context.
+        </p>
+
+        <h3><strong>Configuration parameters</strong></h3>
+
+            <p>
+                The node will invoke the <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/subscription/subscription.html" target="_blank">subscription API</a>.
+            </p>
+
+            <ul>
+                <li><strong>Server</strong>: se Sentilo / Thingtia server credentials</li>
+                <li><strong>Provider</strong>: the <code>msg</code> property that holds the provider id, required for <code>data</code> and <code>order</code> subscription data types</li>
+                <li><strong>Data type</strong>: the <code>msg</code> property that holds the data type to which subscribe: <code>alarm</code>, <code>data</code> or <code>order</code></li>
+                <li>
+                    <strong>Id</strong>: the <code>msg</code> property that holds the element identifier. Optional for <code>data</code> and <code>order</code> data types.
+                    If left blank, all events from the selected provider will be retrieved.
+                    When <code>alarm</code> data type is selected, the id of the particular alert is required.
+                </li>
+                <li><strong>Callback URL</strong>: the <code>msg</code> property that holds the accessible base URL where Sentilo / Thingtia server will publish the subscription messages</li>
+                <li><strong>Name</strong>: the node descriptive name</li>
+            </ul>
+            <p>Note that the notification response message will be structured according to the specification defined the <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/subscription/subscription.html" target="_blank">Sentilo/Thingtia API subscription documentation</a></p>
+
+        <h3><strong>Outputs</strong></h3>
+            <ul>
+                <li>
+                    First output is a Sentilo / Thingtia server's JSON response to the
+                    <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/subscription/subscription.html" target="_blank">subscription API</a> invocation.
+                    The subscription is re-created on every deploy.
+                </li>
+                <li>
+                    Second output is the resulting HTTP status code of the subscription API invocation.
+                    Possible status codes are listed <a href="https://sentilo.readthedocs.io/en/latest/api_docs/general_model.html#response" target="_blank">here</a>,
+                    but should you have connectivity of configuration issues, you might get other codes as well.
+                </li>
+            </ul>
+
+        <h3><strong>Error handling</strong></h3>
+            <p>The node will throw an error if some of the nexts problems are encountered:</p>
+            <ul>
+                <li>Sentilo / Thingtia API returns an error</li>
+                <li>A required field of settings is not set</li>
+            </ul>
+            <p>The thrown error may be caught by a <code>catch</code> node</p>
+
+</script>

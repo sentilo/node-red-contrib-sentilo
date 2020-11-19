@@ -1,6 +1,6 @@
 <script type="text/javascript">
 
-RED.nodes.registerType('subscribe',{
+RED.nodes.registerType('subscribe-with-endpoint',{
     category: 'sentilo',
     color: '#f0f0f0',
     defaults: {
@@ -31,7 +31,7 @@ RED.nodes.registerType('subscribe',{
     outputLabels: [ "Incoming message from subscription", "Sentilo API response message","Sentilo response HTTP code"],
     icon: "sentilo.png",
     label: function() {
-        return this.name || "subscribe";
+        return this.name || "subscribe-with-endpoint";
     },
     oneditprepare: function() {
         
@@ -60,7 +60,7 @@ function subscribeUpdateCallbackUrl() {
 
 </script>
 
-<script type="text/x-red" data-template-name="subscribe">
+<script type="text/x-red" data-template-name="subscribe-with-endpoint">
 
     <!-- Sentilo Server -->
     <div id="server-shape" class="form-row">
@@ -117,52 +117,44 @@ function subscribeUpdateCallbackUrl() {
 
 </script>
 
-<script type="text/x-red" data-help-name="subscribe">
+<script type="text/x-red" data-help-name="subscribe-with-endpoint">
 
-    <h2><strong>The 'subscribe' node</stronG></h2>
+    <h2><strong>The 'subscribe-with-endpoint' node</strong></h2>
         <p>The node subscribes to events from a <strong>Sentilo</strong> or <strong>Thingtia</strong> platform server.</p>
         <p>Possible event types are: <code>DATA</code>, <code>ORDER</code> and <code>ALARM</code>.</p>
 
         <h2><strong>How does it work</strong></h2>
             <p>
-                Select a valid Sentilo or Thingtia platform server configuration to work with (<strong>Server</strong> field).
-            </p>
-            <p>
-                You must provide config into required fields, such like <strong>Provider Id</strong>, and / or <strong>Id</strong>,
-                depending on the type of data you want to subscribe.
-            </p>
-            <p>
-                The optional parameter <code>id</code> is used when you want to subscribe to an specific
-                <strong>sensor</strong> or <strong>alarm</strong> events, where you may fill it own id.
-            </p>
-            <p>
-                The node will create a HTTP endpoint listening to POST method on the <code>Callback URL</code>,
-                therefore you should provide a globally reachable <code>Public base URL</code>.
-                You'll get the subscription messages at the first output as message payload.
-            </p>
-            <p>
                 The node will invoke the <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/subscription/subscription.html" target="_blank">subscription API</a>
-                and register the very same <code>Callback URL</code> that it's handling.
-                On every deploy of the node, the subscription is re-created. Second output provides a Sentilo / Thingtia API response which is JSON.
-                Third output is only the HTTP status code of this subscription request.
-            </p>
+                and register the very same <code>Callback URL</code> as the URL for the subscription (the <code>endpoint</code> attribute).
 
+            </p>
+            <p>
+                At the same time, the node creates a HTTP endpoint listening to POST method on the <code>Callback URL</code>.
+                To this URL will arrive future messages from Sentilo in JSON format.
+
+
+            </p>
+            <p>
+                Note: you should provide a globally reachable <code>Public base URL</code>.<br/>
+                On every restart of the flow or whole Node-RED instance, the subscription is re-created.
+            </p>
             <h3><strong>Request config params</strong></h3>
                 <ul>
                     <li><strong>Server</strong>: se Sentilo / Thingtia server credentials</li>
                     <li><strong>Provider</strong>: the <code>providerId</code>, required for <code>DATA</code> and <code>ORDER</code> subscription data types</li>
-                    <li><strong>Data type</strong>: the data type to wich subscribe: <code>ALARM</code>, <code>DATA</code> or <code>ORDER</code></li>
+                    <li><strong>Data type</strong>: the data type to subscribe: <code>ALARM</code>, <code>DATA</code> or <code>ORDER</code></li>
                     <li>
                         <strong>Id</strong>: the element identifier, is optional for <code>DATA</code> and <code>ORDER</code> data types.
                         If left blank, all events from the selected provider will be retrieved.
                         When <code>ALARM</code> data type is selected, the id of the particular <strong>alertId</strong> is required.
                     </li>
                     <li><strong>Public base URL</strong>: the base public URL from where you're publishing your flow (normally your node-red server ip & port)</li>
-                    <li><strong>Endpoint</strong>: the endpoint to witch you wnat to subscribe into your node-red server (note that it must be a POST endpoint)</li>
+                    <li><strong>Endpoint</strong>: the endpoint to which you want to subscribe into your node-red server (note that it must be a POST endpoint)</li>
                     <li><strong>Callback URL</strong>: this is de public base URL & endpoint config params concatenation, and it is where Sentilo / Thingtia server will publish the response messages</li>
                     <li><strong>Name</strong>: the node descriptive name</li>
                 </ul>
-                <p>Please, note that all above parameters, configurations and the <strong>notification response message structure</strong> must meet or will follow the specification defined into the <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/subscription/subscription.html" target="_blank">Sentilo/Thingtia API subscription documentation</a></p>
+                <p>Note that the notification response message structure will meet the structure defined in the <a href="https://sentilo.readthedocs.io/en/latest/api_docs/services/subscription/subscription.html" target="_blank">Sentilo/Thingtia API subscription documentation</a></p>
 
         <h3><strong>Outputs</strong></h3>
             <ul>
