@@ -29,7 +29,7 @@ module.exports = function(RED) {
         node.identifier = config.identifier;
         node.baseUrl = config.baseUrl;
         node.endpoint = config.endpoint;
-        node.callbackUrl = config.callbackUrl;
+        node.callbackUrl = config.baseUrl + config.endpoint;
         node.subscriptionType = config.subscriptionType;
 
         if (RED.settings.httpNodeRoot !== false) {
@@ -227,7 +227,8 @@ module.exports = function(RED) {
             if (msg) {
                 node.error('Enpoint is mandatory, and must start with /', msg);
             }
-            valid = false;
+            node.endpoint = '';
+            valid = true;
         }
 
         if(!node.callbackUrl) {

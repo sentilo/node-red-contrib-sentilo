@@ -64,14 +64,15 @@ Possible data types are:
 * ALARM
 * DATA
 * ORDER
+This node is an all-in-one Sentilo subscription feature. It is ideal if you need to subscribe to single channel (be it one data type, one sensor, one provider etc).    
 
 
 ##### Input / output
 No input - the Subscribe With Endpoint Node is activated on Node-Red flow deployment. At this moment it creates the HTTP endpoint, 
 as well as it creates or re-creates the subscription. Outputs:
 * First output returns the retrieved subscription notification messages.
-* Second output returns Sentilo response message of the subscription creation call (executed only on deploy)
-* Third output returns Sentilo HTTP status code of the subscription creation call (executed only on deploy)
+* Second output returns Sentilo response message of the subscription creation call (executed only once on each deploy)
+* Third output returns Sentilo HTTP status code of the subscription creation call (executed only once on each deploy)
 
 
 ### Subscribe Without Endpoint node
@@ -81,13 +82,13 @@ Possible data types are:
 * ALARM
 * DATA
 * ORDER
+This node is created for bulk-manage the subscriptions. It can be parametrized by properties in the incoming msg object. 
 
 
 ##### Input / output
-No input - the Subscribe With Endpoint Node is activated on Node-Red flow deployment. At this moment it creates the HTTP endpoint, 
-as well as it creates or re-creates the subscription. Outputs:
-* First output returns the retrieved subscription notification messages.
-* Second output returns Sentilo response message of the subscription creation call (executed only on deploy)
+The Subscribe Without Endpoint Node has one input and expects given properties in the msg object. 
+* First output returns Sentilo response message of the subscription creation call
+* Second output returns Sentilo HTTP status code of the subscription creation call
 
 
 ## Related documentation
