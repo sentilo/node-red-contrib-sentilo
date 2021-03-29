@@ -29,7 +29,7 @@ module.exports = function(RED) {
         node.identifier = config.identifier;
         node.baseUrl = config.baseUrl;
         node.endpoint = config.endpoint;
-        node.callbackUrl = config.baseUrl + config.endpoint;
+        node.callbackUrl = config.callbackUrl;
         node.subscriptionType = config.subscriptionType;
 
         if (RED.settings.httpNodeRoot !== false) {
@@ -103,7 +103,7 @@ module.exports = function(RED) {
                         node.server.host,
                         requestPath,
                         node.server.acceptUntrusted,
-                        node.server.credentials.apiKey,
+                        node.server.apiKey,
                         payload,
                         (responseObject) => {
                             node.status({ fill: 'blue', shape: 'ring', text: 'Ready' });
@@ -201,7 +201,7 @@ module.exports = function(RED) {
                 valid = false;
             }
         
-            if(!node.server.credentials.apiKey) {
+            if(!node.server.apiKey) {
                 var alias = node.server.alias || '<no alias>';
                 node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
                 node.error('API key field content is blank in server connection with alias \'' + alias + '\'');
@@ -227,8 +227,7 @@ module.exports = function(RED) {
             if (msg) {
                 node.error('Enpoint is mandatory, and must start with /', msg);
             }
-            node.endpoint = '';
-            valid = true;
+            valid = false;
         }
 
         if(!node.callbackUrl) {

@@ -42,7 +42,7 @@ module.exports = function(RED) {
                     node.server.host,
                     node.path,
                     node.server.acceptUntrusted,
-                    node.server.credentials.apiKey,
+                    node.server.apiKey,
                     null, // In GET methods there aren't input data
                     (responseObject) => {
                         node.status({ fill: 'green', shape: 'dot', text: 'Success' });
@@ -100,7 +100,7 @@ module.exports = function(RED) {
                 valid = false;
             }
         
-            if(!node.server.credentials.apiKey) {
+            if(!node.server.apiKey) {
                 var alias = node.server.alias || '<no alias>';
                 node.status({ fill: 'red', shape: 'dot', text: 'SETTINGS ERROR!' });
                 reportError(node, msg, 'API key field content is blank in server connection with alias \'' + alias + '\'');

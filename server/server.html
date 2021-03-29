@@ -4,16 +4,28 @@
         defaults: {
             alias: { value: '', required: true },
             host: { value: '', required: true, validate: RED.validators.regex(/^((http|https):\/\/)?([^:\/\s]+)(\:(\d+))?$/) },
-            acceptUntrusted: { value: false, required: false }
-        },
-        credentials: {
-            apiKey: { type: 'password', required: true }
+            acceptUntrusted: { value: false, required: false },
+            apiKey: { value: '', required: true }
         },
 
         label: function() {
             return this.alias || this.host;
+        },
+
+        oneditprepare: function() {
+            $('#node-config-input-apiKey').keyup(function() {
+                checkApiKey(this.value);
+            });
         }
     });
+
+    function checkApiKey(apiKeyValue) {
+        if(apiKeyValue.startsWith('${')) {
+            $('#node-config-input-apiKey-warn').css('visibility','hidden');
+        } else {
+            $('#node-config-input-apiKey-warn').css('visibility','visible');
+        }
+    }
 </script>
 
 <script type="text/x-red" data-template-name="server">
@@ -31,7 +43,8 @@
     </div>
     <div class="form-row">
         <label for="node-config-input-apiKey"><i class="fa fa-key"></i> API Key</label>
-        <input type="password" id="node-config-input-apiKey" placeholder="API Key">
+        <input type="text" id="node-config-input-apiKey" placeholder="API Key">
+        <div style="color:red;visibility:hidden;" id="node-config-input-apiKey-warn">You should use an environment variable for this sensitive value.</div>
     </div>
 </script>
 
@@ -50,6 +63,9 @@
             <p>Do not include final slash or path parts at the end. Example: <code>https://api.thingtia.cloud</code></p>
         </li>
         <li><code>Accept untrusted TLS</code> - whether to trust or not a remote https that does not provide a valid certificate</li>
-        <li><code>API key</code> - the API key for Sentilo/Thingtia API from your <i>Provider</i> detail</li>
+        <li><code>API key</code> - the API key for Sentilo/Thingtia API from your <i>Provider</i> detail.
+        We strongly recommend not no hard-code the value but rather use <a href="https://nodered.org/docs/user-guide/environment-variables" target="_blank">envirnoment variables</a>.<br/>
+        Please note that this property was formerly stored as a <a href="https://nodered.org/docs/creating-nodes/credentials" target="_blank">credential</a>,
+        but that was difficulting work across different environments - the value of this type of fields gets reset after an import or change of project.</li>
     </ul>
 </script>
