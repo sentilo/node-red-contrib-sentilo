@@ -101,6 +101,10 @@ Please, feel free to look into the official Sentilo/Thingtia documentation to ge
 
 ## Revisions
 
+* **0.5.0**
+  * Sentilo/Thingtia API token in plaintext. Environment variable use encouraged. 
+* **0.4.0**
+  * Compatibility with Node-RED's environment variables
 * **0.3.0 (actual)**
   * Added the 'subscribe-without-endpoint' node
   * The 'subscribe' node renamed to 'subscribe-with-endpoint'
