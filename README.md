@@ -101,7 +101,7 @@ Please, feel free to look into the official Sentilo/Thingtia documentation to ge
 
 ## Revisions
 
-* **0.5.0**
+* **0.5.1**
   * Sentilo/Thingtia API token in plaintext. Environment variable use encouraged. 
 * **0.4.0**
   * Compatibility with Node-RED's environment variables
